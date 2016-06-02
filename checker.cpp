@@ -37,7 +37,7 @@ void Checker::check()
         /*
          * Reading Auth.xml
          */
-        auto auth = getData("http://galynsky.ru/auth.xml");
+        const tuple<string, bool> &auth = getData("http://galynsky.ru/auth.xml");
         if (get<1>(auth) == true) {
             _log->local("Can not connect to Auth.xml", LOG_ERROR);
             break;
@@ -51,7 +51,7 @@ void Checker::check()
         boost::property_tree::read_xml(stream, propertyTree);
 
         bool isOk = true;
-        for(auto &v : propertyTree) {
+        for(const auto &v : propertyTree) {
             try {
                 userName = v.second.get<string>("user");
                 userKey = v.second.get<string>("userkey");
@@ -68,7 +68,7 @@ void Checker::check()
         /*
          * Reading Data.xml
          */
-        auto data = getData("http://galynsky.ru/data.xml");
+        const tuple<string, bool> &data = getData("http://galynsky.ru/data.xml");
         if (get<1>(data) == true) {
             _log->local("Can not connect to Data.xml", LOG_ERROR);
             break;
@@ -80,9 +80,7 @@ void Checker::check()
         stringstream streamData(get<0>(data));
         boost::property_tree::ptree p2;
         boost::property_tree::read_xml(streamData, p2);
-        boost::property_tree::ptree p3 = p2.get_child("document.items");
-
-        size_t checkCnt = 0;
+        const auto &p3 = p2.get_child("document.items");
 
         try {
             _db->open("my.sqlite");
@@ -90,14 +88,19 @@ void Checker::check()
             _log->local(err, LOG_ERROR);
             break;
         }
-        for (auto &v : p3) {
+        size_t checkCnt = 0;
+        for (const auto &v : p3) {
             checkCnt++;
 
-           bool res = _db->checkUser(v.second.get<unsigned>("userid"));
-           if (!res)
-               _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), v.second.get<string>("date"));
-           else
-               _db->incUser(v.second.get<unsigned>("userid"));
+            bool res = _db->checkUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+            if (!res)
+                _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), v.second.get<string>("date"));
+            else {
+                bool retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+                if (retVal) {
+                    //Printing check
+                }
+            }
 
             if (checkCnt == 3)
                 break;
@@ -110,7 +113,7 @@ void Checker::check()
     _timer->async_wait(boost::bind(&Checker::check, this));
 }
 
-tuple<string, bool> Checker::getData(const string &url)
+tuple<string, bool> Checker::getData(const string &url) const
 {
     bool err = false;
     string content;

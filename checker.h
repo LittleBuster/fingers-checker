@@ -41,10 +41,10 @@ private:
 
     void check();
 
-    tuple<string,bool> getData(const string &url);
+    tuple<string,bool> getData(const string &url) const;
 
 public:
-    Checker(const shared_ptr<IDatabase> &db, const shared_ptr<ILog> &log);
+    explicit Checker(const shared_ptr<IDatabase> &db, const shared_ptr<ILog> &log);
 
     inline void setInterval(unsigned interval) {
         _interval = interval;

@@ -22,9 +22,9 @@ class IDatabase
 {
 public:
     virtual void open(const string &filename)=0;
-    virtual bool checkUser(unsigned id)=0;
-    virtual void addUser(unsigned id, string name, string date)=0;
-    virtual void incUser(unsigned id)=0;
+    virtual bool checkUser(unsigned id, const string &date) const=0;
+    virtual void addUser(unsigned id, const string &name, const string &date) const=0;
+    virtual bool incUser(unsigned id, const string &date) const=0;
     virtual void close()=0;
 };
 
@@ -37,11 +37,11 @@ private:
 public:
     void open(const string &filename);
 
-    bool checkUser(unsigned id);
+    bool checkUser(unsigned id, const string &date) const;
 
-    void addUser(unsigned id, string name, string date);
+    void addUser(unsigned id, const string &name, const string &date) const;
 
-    void incUser(unsigned id);
+    bool incUser(unsigned id, const string &date) const;
 
     void close();
 };
