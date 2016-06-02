@@ -30,7 +30,7 @@ void Database::addUser(unsigned id, const string &name, const string &date) cons
     const string &uid = boost::lexical_cast<string>(id);
 
     boost::split(datetime, date, boost::is_any_of(" "));
-    string str = "INSERT INTO users (uid, name, status, date, timeIn) VALUES ('" + uid + "', '" + name + "', '" + datetime[0] +
+    string str = "INSERT INTO users (uid, name, date, timeIn) VALUES ('" + uid + "', '" + name + "', '" + datetime[0] +
                    "', '" + datetime[1] + "')";
 
     bool f = q.exec(str.c_str());

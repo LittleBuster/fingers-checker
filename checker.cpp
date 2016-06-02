@@ -93,10 +93,20 @@ void Checker::check()
             checkCnt++;
 
             bool res = _db->checkUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
-            if (!res)
-                _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), v.second.get<string>("date"));
+            if (!res) {
+                try {
+                    _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), v.second.get<string>("date"));
+                } catch (const string &err) {
+                    _log->local(err, LOG_ERROR);
+                }
+            }
             else {
-                bool retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+                bool retVal = false;
+                try {
+                    retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+                } catch (const string &err) {
+                    _log->local(err, LOG_ERROR);
+                }
                 if (retVal) {
                     //Printing check
                 }
