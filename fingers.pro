@@ -14,10 +14,12 @@ SOURCES += main.cpp \
             app.cpp \
             log.cpp \
     checker.cpp \
-    database.cpp
+    database.cpp \
+    printer.cpp
 
 HEADERS += \
     app.h \
     log.h \
     checker.h \
-    database.h
+    database.h \
+    printer.h

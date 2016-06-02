@@ -11,6 +11,7 @@
 
 #include "checker.h"
 #include <iostream>
+#include <tuple>
 #include <curl/curl.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -83,7 +84,7 @@ void Checker::check()
         const auto &p3 = p2.get_child("document.items");
 
         try {
-            _db->open("my.sqlite");
+            _db->open("C:\\Qt\\my.sqlite");
         } catch (const string &err) {
             _log->local(err, LOG_ERROR);
             break;
@@ -101,14 +102,14 @@ void Checker::check()
                 }
             }
             else {
-                bool retVal = false;
                 try {
-                    retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+                    const tuple<bool, unsigned> &retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
+                    if (get<0>(retVal) == true) {
+                        //unique id get<1>(retVal)
+                        //Printing check
+                    }
                 } catch (const string &err) {
                     _log->local(err, LOG_ERROR);
-                }
-                if (retVal) {
-                    //Printing check
                 }
             }
 

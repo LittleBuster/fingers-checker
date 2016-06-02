@@ -24,7 +24,7 @@ public:
     virtual void open(const string &filename)=0;
     virtual bool checkUser(unsigned id, const string &date) const=0;
     virtual void addUser(unsigned id, const string &name, const string &date) const=0;
-    virtual bool incUser(unsigned id, const string &date) const=0;
+    virtual tuple<bool, unsigned> incUser(unsigned id, const string &date) const=0;
     virtual void close()=0;
 };
 
@@ -41,7 +41,7 @@ public:
 
     void addUser(unsigned id, const string &name, const string &date) const;
 
-    bool incUser(unsigned id, const string &date) const;
+    tuple<bool, unsigned> incUser(unsigned id, const string &date) const;
 
     void close();
 };

@@ -38,14 +38,15 @@ void Database::addUser(unsigned id, const string &name, const string &date) cons
         throw string("Fail add new user in Database");
 }
 
-bool Database::incUser(unsigned id, const string &date) const
+tuple<bool, unsigned> Database::incUser(unsigned id, const string &date) const
 {
+    unsigned retId = 0;
     bool retVal = false;
     vector<string> datetime;
     const string &uid = boost::lexical_cast<string>(id);
     boost::split(datetime, date, boost::is_any_of(" "));
 
-    QSqlQuery query(string("SELECT timeIn,input FROM users WHERE uid='" + uid + "',date='" + datetime[0] + "'").c_str());
+    QSqlQuery query(string("SELECT timeIn,input,id FROM users WHERE uid='" + uid + "',date='" + datetime[0] + "'").c_str());
 
     while (query.next()) {
         unsigned hour;
@@ -67,6 +68,7 @@ bool Database::incUser(unsigned id, const string &date) const
                 break;
             }
             retVal = true;
+            retId = query.value(2).toString().toUInt();
         }
         /*
          * Add last visit
@@ -82,7 +84,7 @@ bool Database::incUser(unsigned id, const string &date) const
             }
         }
     }
-    return retVal;
+    return make_tuple(retVal, retId);
 }
 
 bool Database::checkUser(unsigned id, const string &date) const
