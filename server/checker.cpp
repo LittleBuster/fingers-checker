@@ -92,15 +92,15 @@ void Checker::check()
             break;
         }
         stringstream streamData(get<0>(data));
-        boost::property_tree::ptree p2;
+        boost::property_tree::ptree p2, p3;
         try {
             boost::property_tree::read_xml(streamData, p2);
+            p3 = p2.get_child("document.items");
         }
         catch(...) {
             _log->local("Fail reading data.", LOG_ERROR);
             break;
-        }
-        const auto &p3 = p2.get_child("document.items");
+        }        
 
         unsigned i = 0;
         string info = "";
