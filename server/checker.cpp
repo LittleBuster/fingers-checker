@@ -37,9 +37,6 @@ void Checker::check()
     string userKey;
 
     while (true) {
-        const auto dt = boost::posix_time::second_clock::local_time();
-        cout << dateToNum(dt) << endl;
-        break;
         /*
          * Reading Auth.xml
          */
