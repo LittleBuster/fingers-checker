@@ -48,7 +48,7 @@ private:
      *
      * returns full log string width datetime and type
      */
-    const string makeLogMsg(const string &msg, const LogType type) const;
+    string makeLogMsg(const string &msg, const LogType type) const;
 
 public:
     explicit Log();

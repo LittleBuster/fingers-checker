@@ -19,7 +19,7 @@ Log::Log(): _logPath("")
 {
 }
 
-const string Log::makeLogMsg(const string &msg, const LogType type) const
+string Log::makeLogMsg(const string &msg, const LogType type) const
 {
     string out;
 

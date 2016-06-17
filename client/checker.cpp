@@ -37,7 +37,7 @@ void Checker::check()
     const auto &wc = _cfg->getWebCfg();
 
     for (unsigned i = 0; i < DEV_COUNT; i++) {
-        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i]));
+        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd));
         th.detach();
     }
 
@@ -45,18 +45,17 @@ void Checker::check()
     _timer->async_wait(boost::bind(&Checker::check, this));
 }
 
-void Checker::checkDevice(const string &devIp, const string &printer)
+void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd)
 {
     string userName;
     string userKey;
-    const auto &wc = _cfg->getWebCfg();
 
     while (true) {
         /*
          * Reading Auth.xml
          */
-        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + wc.username
-                                                  + "&userpwd=" + wc.passwd);
+        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + user
+                                                  + "&userpwd=" + passwd);
         if (get<1>(auth) == true) {
             _log->local("Can not connect to Auth.xml", LOG_ERROR);
             break;
@@ -95,7 +94,7 @@ void Checker::checkDevice(const string &devIp, const string &printer)
          * Reading Data.xml
          */
         const string &nowdate = dateToNum(boost::posix_time::second_clock::local_time());
-        const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=" + wc.username + "&sdate="
+        const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=" + user + "&sdate="
                                                   + nowdate + "&edate=" + nowdate + "&start=0&pagesize=3&user="
                                                   + userName + "&userkey=" + userKey);
         if (get<1>(data) == true) {
