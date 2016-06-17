@@ -12,15 +12,16 @@
 #include "app.h"
 
 
-App::App(const shared_ptr<IChecker> &checker)
+App::App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log)
 {
     _checker = checker;
+    _log = log;
 }
 
 int App::start()
 {
-    setlocale(LC_ALL, "Russian");
-    _checker->setInterval(1);
+    _log->setLogFile("/var/log/fingers.log");
+    _checker->setInterval(5);
     _checker->start();
     return 0;
 }

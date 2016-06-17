@@ -15,7 +15,9 @@
 #include <curl/curl.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <QDebug>
+#include <boost/lexical_cast.hpp>
+#include <boost/date_time.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
@@ -31,6 +33,14 @@ static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
 
 void Checker::check()
 {
+
+
+    _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
+    _timer->async_wait(boost::bind(&Checker::check, this));
+}
+
+void Checker::checkDevice(const string &devIp, const string &printer)
+{
     string userName;
     string userKey;
 
@@ -38,7 +48,7 @@ void Checker::check()
         /*
          * Reading Auth.xml
          */
-        const tuple<string, bool> &auth = getData("http://galynsky.ru/auth.xml");
+        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=0&userpwd=4711");
         if (get<1>(auth) == true) {
             _log->local("Can not connect to Auth.xml", LOG_ERROR);
             break;
@@ -49,7 +59,13 @@ void Checker::check()
         }
         stringstream stream(get<0>(auth));
         boost::property_tree::ptree propertyTree;
-        boost::property_tree::read_xml(stream, propertyTree);
+        try {
+            boost::property_tree::read_xml(stream, propertyTree);
+        }
+        catch(...) {
+            _log->local("Fail reading keys.", LOG_ERROR);
+            break;
+        }
 
         bool isOk = true;
         for(const auto &v : propertyTree) {
@@ -57,19 +73,23 @@ void Checker::check()
                 userName = v.second.get<string>("user");
                 userKey = v.second.get<string>("userkey");
             } catch (...) {
-                _log->local("Fail parsing Auth.xml", LOG_ERROR);
+                _log->local("Fail reading keys.", LOG_ERROR);
                 isOk = false;
                 break;
             }
         }
         if (!isOk)
             break;
+
         cout << "Admin: " << userName << " Key: " << userKey << endl;
 
         /*
          * Reading Data.xml
          */
-        const tuple<string, bool> &data = getData("http://galynsky.ru/data.xml");
+        const string &nowdate = dateToNum(boost::posix_time::second_clock::local_time());
+        const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=0&sdate=" + nowdate +
+                                                  "&edate=" + nowdate + "&start=0&pagesize=3&user=" + userName +
+                                                  "&userkey=" + userKey);
         if (get<1>(data) == true) {
             _log->local("Can not connect to Data.xml", LOG_ERROR);
             break;
@@ -79,49 +99,22 @@ void Checker::check()
             break;
         }
         stringstream streamData(get<0>(data));
-        boost::property_tree::ptree p2;
-        boost::property_tree::read_xml(streamData, p2);
-        const auto &p3 = p2.get_child("document.items");
-
+        boost::property_tree::ptree p2, p3;
         try {
-            _db->open("C:\\Qt\\my.sqlite");
-        } catch (const string &err) {
-            _log->local(err, LOG_ERROR);
+            boost::property_tree::read_xml(streamData, p2);
+            p3 = p2.get_child("document.items");
+        }
+        catch(...) {
+            _log->local("Fail reading data.", LOG_ERROR);
             break;
         }
-        size_t checkCnt = 0;
+
         for (const auto &v : p3) {
-            checkCnt++;
-
-            bool res = _db->checkUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
-            if (!res) {
-                try {
-                    _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), v.second.get<string>("date"));
-                } catch (const string &err) {
-                    _log->local(err, LOG_ERROR);
-                }
-            }
-            else {
-                try {
-                    const tuple<bool, unsigned> &retVal = _db->incUser(v.second.get<unsigned>("userid"), v.second.get<string>("date"));
-                    if (get<0>(retVal) == true) {
-                        //unique id get<1>(retVal)
-                        //Printing check
-                    }
-                } catch (const string &err) {
-                    _log->local(err, LOG_ERROR);
-                }
-            }
-
-            if (checkCnt == 3)
-                break;
+            v.second.get<unsigned>("userid");
+            // check if user exists
         }
-        _db->close();
         break;
     }
-
-    _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
-    _timer->async_wait(boost::bind(&Checker::check, this));
 }
 
 tuple<string, bool> Checker::getData(const string &url) const
@@ -145,10 +138,49 @@ tuple<string, bool> Checker::getData(const string &url) const
     return make_tuple(content, err);
 }
 
-Checker::Checker(const shared_ptr<IDatabase> &db, const shared_ptr<ILog> &log)
+string Checker::dateToNum(const boost::posix_time::ptime &time)
+{
+    vector<string> dt;
+    vector<string> d;
+
+    const string &datetime = boost::lexical_cast<string>(time);
+    boost::split(dt, datetime, boost::is_any_of(" "));
+    boost::split(d, dt[0], boost::is_any_of("-"));
+
+    string out = d[0] + "-";
+
+    if (d[1] == "Jan")
+        out += "1";
+    if (d[1] == "Feb")
+        out += "2";
+    if (d[1] == "Mar")
+        out += "3";
+    if (d[1] == "Apr")
+        out += "4";
+    if (d[1] == "May")
+        out += "5";
+    if (d[1] == "Jun")
+        out += "6";
+    if (d[1] == "Jul")
+        out += "7";
+    if (d[1] == "Aug")
+        out += "8";
+    if (d[1] == "Sep")
+        out += "9";
+    if (d[1] == "Oct")
+        out += "10";
+    if (d[1] == "Nov")
+        out += "11";
+    if (d[1] == "Dec")
+        out += "12";
+
+    out += "-" + d[2];
+    return out;
+}
+
+Checker::Checker(const shared_ptr<ILog> &log)
 {
     _log = log;
-    _db = db;
 }
 
 void Checker::start()

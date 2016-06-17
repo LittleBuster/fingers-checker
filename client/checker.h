@@ -39,6 +39,8 @@ private:
 
     void check();
 
+    void checkDevice(const string &devIp, const string &printer);
+
     tuple<string,bool> getData(const string &url) const;
 
     string dateToNum(const boost::posix_time::ptime &time);

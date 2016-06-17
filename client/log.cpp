@@ -46,7 +46,7 @@ const string Log::makeLogMsg(const string &msg, const LogType type) const
 
 void Log::local(const string &message, const LogType err_type)
 {
-    string msg = makeLogMsg(message, err_type);
+    const string& msg = makeLogMsg(message, err_type);
     cout << msg << endl;
 
     if (_logPath == "")

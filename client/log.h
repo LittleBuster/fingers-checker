@@ -25,20 +25,6 @@ typedef enum {
     LOG_INFORMATION
 } LogType;
 
-typedef struct {
-    string ip;
-    unsigned port;
-    string name;
-} RemoteLog;
-
-typedef struct {
-    char name[255];
-    char message[255];
-    unsigned type;
-} SendData;
-
-class ITcpClient;
-
 
 class ILog
 {
