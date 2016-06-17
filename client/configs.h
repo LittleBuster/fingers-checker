@@ -13,8 +13,6 @@
 #define __CONFIGS_H__
 
 #include <memory>
-#include <map>
-#include <vector>
 
 using namespace std;
 
@@ -31,7 +29,10 @@ typedef struct {
 } ServerCfg;
 
 typedef struct {
-    unsigned id;
+    unsigned interval;
+} CheckerCfg;
+
+typedef struct {
     string ip;
     string user;
     string passwd;
@@ -43,6 +44,7 @@ class IConfigs
 {
 public:
     virtual const WebCfg& getWebCfg(void) const = 0;
+    virtual const CheckerCfg& getCheckerCfg(void) const = 0;
     virtual const ServerCfg& getServerCfg(void) const = 0;
     virtual const DatabaseCfg& getDatabaseCfg(void) const = 0;
     virtual void load(const string &filename) = 0;
@@ -54,11 +56,16 @@ class Configs: public IConfigs
 private:
     WebCfg wc;
     ServerCfg sc;
+    CheckerCfg cc;
     DatabaseCfg dbc;
 
 public:
     inline const DatabaseCfg& getDatabaseCfg(void) const {
         return dbc;
+    }
+
+    inline const CheckerCfg& getCheckerCfg(void) const {
+        return cc;
     }
 
     inline const WebCfg& getWebCfg(void) const {

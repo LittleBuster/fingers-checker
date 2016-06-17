@@ -11,13 +11,15 @@
 
 #include "app.h"
 #include "log.h"
+#include "configs.h"
 
 
 int main(void)
 {
     auto log = make_shared<Log>();
-    auto checker = make_shared<Checker>(log);
+    auto cfg = make_shared<Configs>();
+    auto checker = make_shared<Checker>(log, cfg);
 
-    auto app = make_shared<App>(checker, log);
+    auto app = make_shared<App>(checker, log, cfg);
     return app->start();
 }

@@ -13,6 +13,7 @@
 #define __CHECKER_H__
 
 #include "log.h"
+#include "configs.h"
 #include <tuple>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
@@ -33,6 +34,7 @@ class Checker: public IChecker
 {
 private:
     shared_ptr<ILog> _log;
+    shared_ptr<IConfigs> _cfg;
     io_service _io;
     shared_ptr<deadline_timer> _timer;
     unsigned _interval;
@@ -46,7 +48,7 @@ private:
     string dateToNum(const boost::posix_time::ptime &time);
 
 public:
-    explicit Checker(const shared_ptr<ILog> &log);
+    explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
     inline void setInterval(unsigned interval) {
         _interval = interval;

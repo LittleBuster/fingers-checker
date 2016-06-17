@@ -14,6 +14,7 @@
 
 #include "checker.h"
 #include "log.h"
+#include "configs.h"
 
 
 class App
@@ -21,9 +22,10 @@ class App
 private:
     shared_ptr<IChecker> _checker;
     shared_ptr<ILog> _log;
+    shared_ptr<IConfigs> _cfg;
 
 public:
-    explicit App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log);
+    explicit App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
     int start();
 };

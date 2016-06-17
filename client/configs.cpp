@@ -46,7 +46,8 @@ void Configs::load(const string &filename)
         sc.ip = pt.get<string>("Server.IP");
         sc.port = pt.get<unsigned>("Server.Port");
 
-        dbc.id = pt.get<unsigned>("Database.ID");
+        cc.interval = pt.get<unsigned>("Checker.Interval");
+
         dbc.ip = pt.get<string>("Database.IP");
         dbc.user = pt.get<string>("Database.User");
         dbc.passwd = pt.get<string>("Database.Passwd");

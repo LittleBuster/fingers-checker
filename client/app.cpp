@@ -10,18 +10,31 @@
  */
 
 #include "app.h"
+#include <iostream>
 
 
-App::App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log)
+App::App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 {
     _checker = checker;
     _log = log;
+    _cfg = cfg;
 }
 
 int App::start()
 {
     _log->setLogFile("/var/log/fingers.log");
-    _checker->setInterval(5);
+
+    try {
+        _cfg->load("/usr/share/fingers/fing.cfg");
+    }
+    catch (const string &err) {
+        cout << err << endl;
+        _log->local(err, LOG_ERROR);
+        return -1;
+    }
+
+    const auto &cc = _cfg->getCheckerCfg();
+    _checker->setInterval(cc.interval);
     _checker->start();
     return 0;
 }

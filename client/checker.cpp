@@ -178,9 +178,10 @@ string Checker::dateToNum(const boost::posix_time::ptime &time)
     return out;
 }
 
-Checker::Checker(const shared_ptr<ILog> &log)
+Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 {
     _log = log;
+    _cfg = cfg;
 }
 
 void Checker::start()
