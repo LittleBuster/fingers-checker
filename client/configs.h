@@ -16,11 +16,13 @@
 
 using namespace std;
 
+#define DEV_COUNT 3
+
 typedef struct {
     string username;
     string passwd;
-    string devices[3];
-    string printers[3];
+    string devices[DEV_COUNT];
+    string printers[DEV_COUNT];
 } WebCfg;
 
 typedef struct {

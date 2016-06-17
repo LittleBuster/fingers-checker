@@ -13,6 +13,7 @@
 #include <iostream>
 #include <tuple>
 #include <curl/curl.h>
+#include <thread>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
@@ -33,7 +34,12 @@ static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
 
 void Checker::check()
 {
+    const auto &wc = _cfg->getWebCfg();
 
+    for (unsigned i = 0; i < DEV_COUNT; i++) {
+        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i]));
+        th.detach();
+    }
 
     _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
     _timer->async_wait(boost::bind(&Checker::check, this));
@@ -43,12 +49,14 @@ void Checker::checkDevice(const string &devIp, const string &printer)
 {
     string userName;
     string userKey;
+    const auto &wc = _cfg->getWebCfg();
 
     while (true) {
         /*
          * Reading Auth.xml
          */
-        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=0&userpwd=4711");
+        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + wc.username
+                                                  + "&userpwd=" + wc.passwd);
         if (get<1>(auth) == true) {
             _log->local("Can not connect to Auth.xml", LOG_ERROR);
             break;
@@ -87,9 +95,9 @@ void Checker::checkDevice(const string &devIp, const string &printer)
          * Reading Data.xml
          */
         const string &nowdate = dateToNum(boost::posix_time::second_clock::local_time());
-        const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=0&sdate=" + nowdate +
-                                                  "&edate=" + nowdate + "&start=0&pagesize=3&user=" + userName +
-                                                  "&userkey=" + userKey);
+        const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=" + wc.username + "&sdate="
+                                                  + nowdate + "&edate=" + nowdate + "&start=0&pagesize=3&user="
+                                                  + userName + "&userkey=" + userKey);
         if (get<1>(data) == true) {
             _log->local("Can not connect to Data.xml", LOG_ERROR);
             break;

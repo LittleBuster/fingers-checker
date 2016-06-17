@@ -25,7 +25,7 @@ int App::start()
     _log->setLogFile("/var/log/fingers.log");
 
     try {
-        _cfg->load("/usr/share/fingers/fing.cfg");
+        _cfg->load("/etc/fingers.cfg");
     }
     catch (const string &err) {
         cout << err << endl;
