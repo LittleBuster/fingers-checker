@@ -50,9 +50,7 @@ private:
 public:
     explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
-    inline void setInterval(unsigned interval) {
-        _interval = interval;
-    }
+    inline void setInterval(unsigned interval) { _interval = interval; }
 
     void start();
 };

@@ -116,10 +116,14 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
             break;
         }
 
+        const auto &dbc = _cfg->getDatabaseCfg();
+        auto db = make_shared<Database>();
+
         for (const auto &v : p3) {
             v.second.get<unsigned>("userid");
             // check if user exists
         }
+        db->close();
         break;
     }
 }
@@ -135,10 +139,8 @@ tuple<string, bool> Checker::getData(const string &url) const
         curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writer);
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &content);
-
         curl_easy_perform(curl_handle);
         curl_easy_cleanup(curl_handle);
-
         err = false;
     } else
         err = true;

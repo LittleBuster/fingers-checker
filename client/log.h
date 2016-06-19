@@ -15,6 +15,8 @@
 
 #include <string>
 #include <memory>
+#include "configs.h"
+#include "database.h"
 
 using namespace std;
 
@@ -31,12 +33,15 @@ class ILog
 public:
     virtual void setLogFile(const string &filepath) = 0;
     virtual void local(const string &message, const LogType log_type) = 0;
+    virtual void remote(const string &message, const LogType logType, const string &devIp) = 0;
 };
 
 
 class Log: public ILog
 {
 private:
+    shared_ptr<IConfigs> _cfg;
+    shared_ptr<IDatabase> _db;
     string _logPath;
 
     using ILog::setLogFile;
@@ -51,7 +56,7 @@ private:
     string makeLogMsg(const string &msg, const LogType type) const;
 
 public:
-    explicit Log();
+    explicit Log(const shared_ptr<IConfigs> &cfg, const shared_ptr<IDatabase> &db);
 
     /*
      * Set path for saving log data in local file
@@ -61,9 +66,11 @@ public:
     /**
      * Saving log data in local file
      * @message: log message
-     * @log_type: message type
+     * @logType: message type
      */
-    void local(const string &message, const LogType log_type);
+    void local(const string &message, const LogType logType);
+
+    void remote(const string &message, const LogType logType, const string &devIp);
 };
 
 

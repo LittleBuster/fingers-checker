@@ -15,15 +15,17 @@
 #include <boost/date_time.hpp>
 
 
-Log::Log(): _logPath("")
+Log::Log(const shared_ptr<IConfigs> &cfg, const shared_ptr<IDatabase> &db): _logPath("")
 {
+    _cfg = cfg;
+    _db = db;
 }
 
 string Log::makeLogMsg(const string &msg, const LogType type) const
 {
     string out;
 
-    const auto dt = boost::posix_time::second_clock::local_time();
+    const auto &dt = boost::posix_time::second_clock::local_time();
     out = "[" + boost::lexical_cast<string>(dt.date()) + "][" + boost::lexical_cast<string>(dt.time_of_day()) + "][";
 
     switch (type) {
@@ -44,9 +46,9 @@ string Log::makeLogMsg(const string &msg, const LogType type) const
     return out;
 }
 
-void Log::local(const string &message, const LogType err_type)
+void Log::local(const string &message, const LogType logType)
 {
-    const string& msg = makeLogMsg(message, err_type);
+    const string& msg = makeLogMsg(message, logType);
     cout << msg << endl;
 
     if (_logPath == "")
@@ -61,4 +63,35 @@ void Log::local(const string &message, const LogType err_type)
     catch (...) {
         cout << "Fail writing to log file." << endl;
     }
+}
+
+void Log::remote(const string &message, const LogType logType, const string &devIp)
+{
+    string ltype = "";
+    const auto &wc = _cfg->getWebCfg();
+    const auto &dbc = _cfg->getDatabaseCfg();
+    const auto &dt = boost::posix_time::second_clock::local_time();
+
+    switch (type) {
+        case LOG_ERROR: {
+            ltype = "ERROR";
+            break;
+        }
+        case LOG_WARNING: {
+            ltype = "WARNING";
+            break;
+        }
+        case LOG_INFORMATION: {
+            ltype = "INFO";
+            break;
+        }
+    }
+
+    if (devIp == "0.0.0.0") {
+        //write in other table
+    }
+
+    //_db->connect();
+
+    _db->close();
 }
