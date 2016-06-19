@@ -21,6 +21,7 @@ using namespace std;
 typedef struct {
     string username;
     string passwd;
+    unsigned pages;
     string devices[DEV_COUNT];
     string printers[DEV_COUNT];
 } WebCfg;
@@ -33,6 +34,10 @@ typedef struct {
 typedef struct {
     unsigned interval;
 } CheckerCfg;
+
+typedef struct {
+    string key;
+} TelegramCfg;
 
 typedef struct {
     string ip;
@@ -49,6 +54,7 @@ public:
     virtual const CheckerCfg& getCheckerCfg(void) const = 0;
     virtual const ServerCfg& getServerCfg(void) const = 0;
     virtual const DatabaseCfg& getDatabaseCfg(void) const = 0;
+    virtual const TelegramCfg& getTelegramCfg(void) const = 0;
     virtual void load(const string &filename) = 0;
 };
 
@@ -60,26 +66,24 @@ private:
     ServerCfg sc;
     CheckerCfg cc;
     DatabaseCfg dbc;
+    TelegramCfg tc;
 
 public:
-    inline const DatabaseCfg& getDatabaseCfg(void) const {
-        return dbc;
-    }
+    inline const DatabaseCfg& getDatabaseCfg(void) const { return dbc; }
 
-    inline const CheckerCfg& getCheckerCfg(void) const {
-        return cc;
-    }
+    inline const CheckerCfg& getCheckerCfg(void) const { return cc; }
 
-    inline const WebCfg& getWebCfg(void) const {
-        return wc;
-    }
+    inline const WebCfg& getWebCfg(void) const { return wc; }
 
-    inline const ServerCfg& getServerCfg(void) const {
-        return sc;
-    }
+    inline const ServerCfg& getServerCfg(void) const { return sc; }
 
-    /*
+    inline const TelegramCfg& getTelegramCfg(void) const { return tc; }
+
+    /**
      * Loading configs from json file
+     * @filename: name of json file
+     *
+     * throw: errror if file not found or parsing fail
      */
     void load(const string &filename);
 };

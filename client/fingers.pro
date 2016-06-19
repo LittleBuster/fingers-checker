@@ -14,12 +14,16 @@ SOURCES += main.cpp \
             app.cpp \
             log.cpp \
             checker.cpp \
-    configs.cpp \
-    database.cpp
+            configs.cpp \
+            database.cpp \
+            notify.cpp \
+            tcpclient.cpp
 
 HEADERS += \
     app.h \
     log.h \
     checker.h \
     configs.h \
-    database.h
+    database.h \
+    notify.h \
+    tcpclient.h

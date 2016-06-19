@@ -36,16 +36,42 @@ void Checker::check()
 {
     const auto &wc = _cfg->getWebCfg();
 
+    /*
+     * Checking devices live
+     */
+    thread thLive(boost::bind(&Checker::checkDeviceLive, this, wc));
+    thLive.detach();
+
+    /*
+     * Check data from device
+     */
     for (unsigned i = 0; i < DEV_COUNT; i++) {
-        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd));
+        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd,
+                              boost::lexical_cast<string>(wc.pages)));
         th.detach();
     }
 
+    /*
+     * Next time cycle
+     */
     _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
     _timer->async_wait(boost::bind(&Checker::check, this));
 }
 
-void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd)
+void Checker::checkDeviceLive(const WebCfg &wc)
+{
+    bool retVal = false;
+    const auto &time = boost::posix_time::second_clock::local_time();
+
+    for (unsigned i = 0; i < DEV_COUNT; i++) {
+        retVal = _notify->checkDevice(wc.devices[i]);
+        if (!retVal)
+            _notify->sendTelegram("[" + boost::lexical_cast<string>(time) + "] Device [" + wc.devices[i] + "] is dead!");
+    }
+}
+
+void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
+                          const string &pageSize)
 {
     string userName;
     string userKey;
@@ -54,8 +80,7 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         /*
          * Reading Auth.xml
          */
-        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + user
-                                                  + "&userpwd=" + passwd);
+        const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + user + "&userpwd=" + passwd);
         if (get<1>(auth) == true) {
             _log->local("Can not connect to Auth.xml", LOG_ERROR);
             break;
@@ -95,8 +120,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
          */
         const string &nowdate = dateToNum(boost::posix_time::second_clock::local_time());
         const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=" + user + "&sdate="
-                                                  + nowdate + "&edate=" + nowdate + "&start=0&pagesize=3&user="
-                                                  + userName + "&userkey=" + userKey);
+                                                  + nowdate + "&edate=" + nowdate + "&start=0&pagesize=" + pageSize
+                                                  + "&user=" + userName + "&userkey=" + userKey);
         if (get<1>(data) == true) {
             _log->local("Can not connect to Data.xml", LOG_ERROR);
             break;
@@ -187,10 +212,11 @@ string Checker::dateToNum(const boost::posix_time::ptime &time)
     return out;
 }
 
-Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
+Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg, const shared_ptr<INotify> &notify)
 {
     _log = log;
     _cfg = cfg;
+    _notify = notify;
 }
 
 void Checker::start()

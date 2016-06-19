@@ -13,14 +13,18 @@
 #include "log.h"
 #include "configs.h"
 #include "database.h"
+#include "tcpclient.h"
+#include "notify.h"
 
 
 int main(void)
 {
     auto cfg = make_shared<Configs>();
     auto db = make_shared<Database>();
+    auto client = make_shared<TcpClient>();
     auto log = make_shared<Log>(cfg, db);
-    auto checker = make_shared<Checker>(log, cfg);
+    auto notify = make_shared<Notify>(cfg, client);
+    auto checker = make_shared<Checker>(log, cfg, notify);
 
     auto app = make_shared<App>(checker, log, cfg);
     return app->start();

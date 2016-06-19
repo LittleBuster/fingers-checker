@@ -48,7 +48,7 @@ private:
 
     /**
      * Create log string for writing to file
-     * @msg: throw.what()
+     * @msg: logging message
      * @type: log message type
      *
      * returns full log string width datetime and type
@@ -67,9 +67,19 @@ public:
      * Saving log data in local file
      * @message: log message
      * @logType: message type
+     *
+     * throw: error if fail access to file
      */
     void local(const string &message, const LogType logType);
 
+    /**
+     * Saving log data to database
+     * @message: log message
+     * @logType: message type
+     * @devIP: IP address of device
+     *
+     * throw: error if fail connect to db or insert log fail
+     */
     void remote(const string &message, const LogType logType, const string &devIp);
 };
 

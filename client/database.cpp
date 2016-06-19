@@ -40,6 +40,16 @@ void Database::log(const string &message, const string &type, const string &devi
         throw string("Logger can not insert to database.");
 }
 
+bool Database::checkUser(const string &username, const string &deviceIP, const string &time)
+{
+    return true;
+}
+
+void Database::addUser(const string &username, const string &deviceIP, const string &time)
+{
+
+}
+
 void Database::close()
 {
     mysql_close(_base);
