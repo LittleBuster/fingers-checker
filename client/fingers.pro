@@ -8,7 +8,7 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-LIBS += -lcurl -lboost_system -lpthread
+LIBS += -lcurl -lboost_system -lpthread -lmysqlclient
 
 SOURCES += main.cpp \
             app.cpp \

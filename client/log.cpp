@@ -68,11 +68,10 @@ void Log::local(const string &message, const LogType logType)
 void Log::remote(const string &message, const LogType logType, const string &devIp)
 {
     string ltype = "";
-    const auto &wc = _cfg->getWebCfg();
     const auto &dbc = _cfg->getDatabaseCfg();
     const auto &dt = boost::posix_time::second_clock::local_time();
 
-    switch (type) {
+    switch (logType) {
         case LOG_ERROR: {
             ltype = "ERROR";
             break;
@@ -87,11 +86,19 @@ void Log::remote(const string &message, const LogType logType, const string &dev
         }
     }
 
-    if (devIp == "0.0.0.0") {
-        //write in other table
+    try {
+        _db->connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
     }
-
-    //_db->connect();
-
-    _db->close();
+    catch (const string &err) {
+        local(err, LOG_ERROR);
+        return;
+    }
+    try {
+        _db->log(message, ltype, devIp, boost::lexical_cast<string>(dt));
+        _db->close();
+    }
+    catch (const string &err) {
+        local(err, LOG_ERROR);
+        _db->close();
+    }
 }

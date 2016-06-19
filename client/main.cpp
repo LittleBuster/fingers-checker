@@ -20,7 +20,7 @@ int main(void)
     auto cfg = make_shared<Configs>();
     auto db = make_shared<Database>();
     auto log = make_shared<Log>(cfg, db);
-    auto checker = make_shared<Checker>(log, cfg, db);
+    auto checker = make_shared<Checker>(log, cfg);
 
     auto app = make_shared<App>(checker, log, cfg);
     return app->start();
