@@ -15,6 +15,8 @@
 #include "database.h"
 #include "tcpclient.h"
 #include "notify.h"
+#include "devicechecker.h"
+#include "threadmanager.h"
 
 
 int main(void)
@@ -22,10 +24,12 @@ int main(void)
     auto cfg = make_shared<Configs>();
     auto db = make_shared<Database>();
     auto client = make_shared<TcpClient>();
+    auto tm = make_shared<ThreadManager>();
     auto log = make_shared<Log>(cfg, db);
     auto notify = make_shared<Notify>(cfg, client);
     auto checker = make_shared<Checker>(log, cfg, notify);
+    auto devChecker = make_shared<DeviceChecker>();
 
-    auto app = make_shared<App>(checker, log, cfg);
+    auto app = make_shared<App>(checker, devChecker, tm, log, cfg);
     return app->start();
 }

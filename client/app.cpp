@@ -11,13 +11,16 @@
 
 #include "app.h"
 #include <iostream>
+#include <boost/thread.hpp>
 
 
-App::App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
+App::App(const shared_ptr<IChecker> &checker, const shared_ptr<IChecker> &devChecker, const shared_ptr<IThreadManager> &tm, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 {
     _checker = checker;
     _log = log;
     _cfg = cfg;
+    _devChecker = devChecker;
+    _tm = tm;
 }
 
 int App::start()
@@ -35,6 +38,14 @@ int App::start()
 
     const auto &cc = _cfg->getCheckerCfg();
     _checker->setInterval(cc.interval);
-    _checker->start();
+    _devChecker->setInterval(cc.devInterval);
+
+    _tm->addThread(_checker);
+    _tm->addThread(_devChecker);
+    _tm->startAll();
+
+    for (;;) {
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+    }
     return 0;
 }

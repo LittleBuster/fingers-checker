@@ -15,20 +15,13 @@
 #include "log.h"
 #include "configs.h"
 #include "notify.h"
+#include "ichecker.h"
 #include <tuple>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
 using namespace std;
 using namespace boost::asio;
-
-
-class IChecker
-{
-public:
-    virtual void start() = 0;
-    virtual void setInterval(unsigned interval) = 0;
-};
 
 
 class Checker: public IChecker

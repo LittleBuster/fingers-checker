@@ -15,17 +15,22 @@
 #include "checker.h"
 #include "log.h"
 #include "configs.h"
+#include "threadmanager.h"
+#include "devicechecker.h"
 
 
 class App
 {
 private:
     shared_ptr<IChecker> _checker;
+    shared_ptr<IChecker> _devChecker;
     shared_ptr<ILog> _log;
     shared_ptr<IConfigs> _cfg;
+    shared_ptr<IThreadManager> _tm;
 
 public:
-    explicit App(const shared_ptr<IChecker> &checker, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
+    explicit App(const shared_ptr<IChecker> &checker, const shared_ptr<IChecker> &devChecker,
+                 const shared_ptr<IThreadManager> &tm, const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
     int start();
 };

@@ -46,6 +46,7 @@ void Configs::load(const string &filename)
         sc.ip = pt.get<string>("Server.IP");
         sc.port = pt.get<unsigned>("Server.Port");
         cc.interval = pt.get<unsigned>("Checker.Interval");
+        cc.devInterval = pt.get<unsigned>("Checker.DeviceInterval");
         tc.id = pt.get<unsigned>("Telegram.ChatID");
         tc.key = pt.get<string>("Telegram.Key");
         dbc.ip = pt.get<string>("Database.IP");

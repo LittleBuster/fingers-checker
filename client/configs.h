@@ -33,6 +33,7 @@ typedef struct {
 
 typedef struct {
     unsigned interval;
+    unsigned devInterval;
 } CheckerCfg;
 
 typedef struct {
