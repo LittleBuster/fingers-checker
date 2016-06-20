@@ -66,7 +66,8 @@ void Checker::checkDeviceLive(const WebCfg &wc)
     for (unsigned i = 0; i < DEV_COUNT; i++) {
         retVal = _notify->checkDevice(wc.devices[i]);
         if (!retVal)
-            _notify->sendTelegram("[" + boost::lexical_cast<string>(time) + "] Device [" + wc.devices[i] + "] is dead!");
+            _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devices[i] + "%0ADate:%20" + boost::lexical_cast<string>(time) +
+                                  "%0AType:%20ERROR%0AIssue:%20Connection failed.");
     }
 }
 
@@ -144,9 +145,27 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         const auto &dbc = _cfg->getDatabaseCfg();
         auto db = make_shared<Database>();
 
+        try {
+            db->connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
+        }
+        catch (const string &err) {
+            _log->local(err, LOG_ERROR);
+            break;
+        }
+
         for (const auto &v : p3) {
-            v.second.get<unsigned>("userid");
-            // check if user exists
+            try {
+                bool retVal = db->checkUser(v.second.get<unsigned>("userid"));
+                if (!retVal) {
+                    db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), devIp, v.second.get<string>("date"));
+                    //PRINT
+                    cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
+                            " Printer: " << printer << endl;
+                }
+            }
+            catch (const string &err) {
+                _log->local(err, LOG_ERROR);
+            }
         }
         db->close();
         break;

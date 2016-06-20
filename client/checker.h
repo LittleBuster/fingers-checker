@@ -26,8 +26,8 @@ using namespace boost::asio;
 class IChecker
 {
 public:
-    virtual void start()=0;
-    virtual void setInterval(unsigned interval)=0;
+    virtual void start() = 0;
+    virtual void setInterval(unsigned interval) = 0;
 };
 
 

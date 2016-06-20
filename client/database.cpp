@@ -10,15 +10,16 @@
  */
 
 #include "database.h"
+#include <boost/lexical_cast.hpp>
+#include <iostream>
+using namespace std;
 
-
-Database::Database()
-{
-    mysql_init(_base);
-}
 
 void Database::connect(const string &ip, const string &user, const string &passwd, const string &base)
 {
+    _base = mysql_init(NULL);
+
+    mysql_options(_base, MYSQL_SET_CHARSET_NAME, "utf8");
     _base = mysql_real_connect(_base, ip.c_str(), user.c_str(), passwd.c_str(), base.c_str(), 3306, NULL, 0);
     if (_base == NULL)
         throw string("Logger can not connect to database.");
@@ -40,14 +41,36 @@ void Database::log(const string &message, const string &type, const string &devi
         throw string("Logger can not insert to database.");
 }
 
-bool Database::checkUser(const string &username, const string &deviceIP, const string &time)
+bool Database::checkUser(unsigned idUser)
 {
-    return true;
+    int retVal;
+    size_t count;
+    MYSQL_RES *result;
+
+    retVal = mysql_query(_base, string("SELECT idUsr FROM users WHERE idUsr=\"" + boost::lexical_cast<string>(idUser) +
+                                       "\" AND time >= CURDATE()").c_str());
+    if (retVal != 0)
+        throw string("Error while reading database table.");
+
+    result = mysql_store_result(_base);
+    count = mysql_num_rows(result);
+
+    if (count != 0) {
+        mysql_free_result(result);
+        return true;
+    }
+    mysql_free_result(result);
+    return false;
 }
 
-void Database::addUser(const string &username, const string &deviceIP, const string &time)
+void Database::addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time)
 {
+    int retVal;
 
+    retVal = mysql_query(_base, string("INSERT INTO users(idUsr, name, device, time) VALUES (\"" + boost::lexical_cast<string>(idUsr) +
+                                       + "\", \"" + username + "\", \"" + deviceIP + "\", \"" + time + "\")").c_str());
+    if (retVal != 0)
+        throw string("Error inserting user in database.");
 }
 
 void Database::close()

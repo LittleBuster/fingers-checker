@@ -36,7 +36,8 @@ void Notify::sendTelegram(const string &message)
 {
     CURL *curl_handle;
     const auto &tc = _cfg->getTelegramCfg();
-    string url = "http://telegram.org" + tc.key; //TODO
+    string url = "https://api.telegram.org/bot" + tc.key + "/sendMessage?chat_id=" + boost::lexical_cast<string>(tc.id) +
+                 "&text=" + message;
 
     curl_handle = curl_easy_init();
     if (curl_handle) {

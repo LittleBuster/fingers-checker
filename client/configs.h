@@ -36,6 +36,7 @@ typedef struct {
 } CheckerCfg;
 
 typedef struct {
+    unsigned id;
     string key;
 } TelegramCfg;
 

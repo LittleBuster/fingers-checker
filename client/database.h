@@ -22,8 +22,8 @@ class IDatabase
 public:
     virtual void connect(const string &ip, const string &user, const string &passwd, const string &base) = 0;
     virtual void log(const string &message, const string &type, const string &deviceIP, const string &time) = 0;
-    virtual bool checkUser(const string &username, const string &deviceIP, const string &time) = 0;
-    virtual void addUser(const string &username, const string &deviceIP, const string &time) = 0;
+    virtual bool checkUser(unsigned idUser) = 0;
+    virtual void addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time) = 0;
     virtual void close() = 0;
 };
 
@@ -34,8 +34,6 @@ private:
     MYSQL *_base;
 
 public:
-    Database();
-
     /**
      * Connecting to database
      * @ip: address of database
@@ -67,7 +65,7 @@ public:
      * returns true: if user exists in database
      * returns false: if user not found
      */
-    bool checkUser(const string &username, const string &deviceIP, const string &time);
+    bool checkUser(unsigned idUser);
 
     /**
      * Adding new user in database
@@ -77,7 +75,7 @@ public:
      *
      * throw: error if fail inserting user
      */
-    void addUser(const string &username, const string &deviceIP, const string &time);
+    void addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time);
 
     /*
      * Close database
