@@ -27,8 +27,8 @@ int main(void)
     auto tm = make_shared<ThreadManager>();
     auto log = make_shared<Log>(cfg, db);
     auto notify = make_shared<Notify>(cfg, client);
-    auto checker = make_shared<Checker>(log, cfg, notify);
-    auto devChecker = make_shared<DeviceChecker>();
+    auto checker = make_shared<Checker>(log, cfg);
+    auto devChecker = make_shared<DeviceChecker>(cfg, notify, log);
 
     auto app = make_shared<App>(checker, devChecker, tm, log, cfg);
     return app->start();

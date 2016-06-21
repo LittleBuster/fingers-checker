@@ -35,13 +35,6 @@ static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
 void Checker::check()
 {
     const auto &wc = _cfg->getWebCfg();
-
-    /*
-     * Checking devices live
-     */
-    thread thLive(boost::bind(&Checker::checkDeviceLive, this, wc));
-    thLive.detach();
-
     /*
      * Check data from device
      */
@@ -56,19 +49,6 @@ void Checker::check()
      */
     _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
     _timer->async_wait(boost::bind(&Checker::check, this));
-}
-
-void Checker::checkDeviceLive(const WebCfg &wc)
-{
-    bool retVal = false;
-    const auto &time = boost::posix_time::second_clock::local_time();
-
-    for (unsigned i = 0; i < DEV_COUNT; i++) {
-        retVal = _notify->checkDevice(wc.devices[i]);
-        if (!retVal)
-            _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devices[i] + "%0ADate:%20" + boost::lexical_cast<string>(time) +
-                                  "%0AType:%20ERROR%0AIssue:%20Connection failed.");
-    }
 }
 
 void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
@@ -231,11 +211,10 @@ string Checker::dateToNum(const boost::posix_time::ptime &time)
     return out;
 }
 
-Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg, const shared_ptr<INotify> &notify)
+Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 {
     _log = log;
     _cfg = cfg;
-    _notify = notify;
 }
 
 void Checker::start()

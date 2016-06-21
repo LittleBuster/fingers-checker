@@ -14,7 +14,6 @@
 
 #include "log.h"
 #include "configs.h"
-#include "notify.h"
 #include "ichecker.h"
 #include <tuple>
 #include <boost/bind.hpp>
@@ -29,7 +28,6 @@ class Checker: public IChecker
 private:
     shared_ptr<ILog> _log;
     shared_ptr<IConfigs> _cfg;
-    shared_ptr<INotify> _notify;
     io_service _io;
     shared_ptr<deadline_timer> _timer;
     unsigned _interval;
@@ -39,14 +37,12 @@ private:
     void checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
                      const string &pageSize);
 
-    void checkDeviceLive(const WebCfg &wc);
-
     tuple<string,bool> getData(const string &url) const;
 
     string dateToNum(const boost::posix_time::ptime &time);
 
 public:
-    explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg, const shared_ptr<INotify> &notify);
+    explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
     inline void setInterval(unsigned interval) { _interval = interval; }
 
