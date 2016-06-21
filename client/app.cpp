@@ -31,8 +31,7 @@ int App::start()
         _cfg->load("/etc/fingers.cfg");
     }
     catch (const string &err) {
-        cout << err << endl;
-        _log->local(err, LOG_ERROR);
+        _log->local("Configs: " + err, LOG_ERROR);
         return -1;
     }
 
