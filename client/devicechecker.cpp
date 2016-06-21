@@ -28,10 +28,28 @@ void DeviceChecker::checkDeviceLife()
     const auto &time = boost::posix_time::second_clock::local_time();
 
     for (unsigned i = 0; i < DEV_COUNT; i++) {
-        retVal = _notify->checkDevice(wc.devices[i]);
-        if (!retVal) {
+        retVal = _notify->checkDevice(wc.devIps[i]);
+        if (retVal)
+            _failDevs[i] = false;
+
+        if (!retVal && !_failDevs[i]) {
             try {
-                _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devices[i] + "%0ADate:%20" +
+                _failDevs[i] = true;
+                _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devNames[i] + "%0ADate:%20" +
+                                      boost::lexical_cast<string>(time) + "%0AType:%20ERROR%0AIssue:%20Connection failed.");
+            }
+            catch(const string &err) {
+                _log->local(err, LOG_WARNING);
+            }
+        }
+        retVal = _notify->checkDevice(wc.printIps[i]);
+        if (retVal)
+            _failPrint[i] = false;
+
+        if (!retVal && !_failPrint[i]) {
+            try {
+                _failPrint[i] = true;
+                _notify->sendTelegram("New%20Issue%0APrinter:%20" + wc.printNames[i] + "%0ADate:%20" +
                                       boost::lexical_cast<string>(time) + "%0AType:%20ERROR%0AIssue:%20Connection failed.");
             }
             catch(const string &err) {

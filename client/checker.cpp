@@ -10,6 +10,7 @@
  */
 
 #include "checker.h"
+#include "printclient.h"
 #include <iostream>
 #include <tuple>
 #include <curl/curl.h>
@@ -40,8 +41,8 @@ void Checker::check()
      * Check data from device
      */
     for (unsigned i = 0; i < DEV_COUNT; i++) {
-        thread th(bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd,
-                              boost::lexical_cast<string>(wc.pages)));
+        thread th(bind(&Checker::checkDevice, this, wc.devIps[i], wc.printIps[i], wc.username, wc.passwd,
+                              boost::lexical_cast<string>(wc.pages), wc.devNames[i], wc.printNames[i]));
         th.detach();
     }
 
@@ -53,7 +54,7 @@ void Checker::check()
 }
 
 void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
-                          const string &pageSize)
+                          const string &pageSize, const string &devName, const string &printName)
 {
     string userName;
     string userKey;
@@ -124,10 +125,10 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         }
 
         const auto &dbc = _cfg->getDatabaseCfg();
-        auto db = make_shared<Database>();
+        Database db;
 
         try {
-            db->connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
+            db.connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
         }
         catch (const string &err) {
             _log->local(err, LOG_ERROR);
@@ -135,20 +136,55 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         }
 
         for (const auto &v : p3) {
+            bool retVal;
+
             try {
-                bool retVal = db->checkUser(v.second.get<unsigned>("userid"));
-                if (!retVal) {
-                    db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), devIp, v.second.get<string>("date"));
-                    //PRINT
-                    cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
-                            " Printer: " << printer << endl;
+                retVal = db.checkUser(v.second.get<unsigned>("userid"));
+            }
+            catch(const string &err) {
+                _log->local("CheckUser: " + err, LOG_ERROR);
+                continue;
+            }
+            if (!retVal) {
+                string hash;
+
+                /*
+                 * PRINT TICKET
+                 */
+                cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
+                        " Printer: " << printer << endl;
+                PrintClient pclient;
+                try {
+                    pclient.connect(printer, 6000);
+                }
+                catch(const string &err) {
+                    _log->local("PrintClient: " + err, LOG_ERROR);
+                }
+                try {
+                    pclient.setData(v.second.get<unsigned>("userid"), user, printName, devName, nowdate);
+                    hash = pclient.genSendData();
+                    pclient.sendData();
+                }
+                catch (const string &err) {
+                    pclient.close();
+                    _log->local("PrintClient: " + err, LOG_ERROR);
+                }
+                pclient.close();
+
+                /*
+                 * Add new user in database
+                 */
+                try {
+                    db.addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), devName, v.second.get<string>("date"),
+                               hash);
+                }
+                catch (const string &err) {
+                    _log->local("CheckUser: " + err, LOG_ERROR);
+                    continue;
                 }
             }
-            catch (const string &err) {
-                _log->local(err, LOG_ERROR);
-            }
         }
-        db->close();
+        db.close();
         break;
     }
 }

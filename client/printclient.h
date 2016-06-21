@@ -30,27 +30,25 @@ class IPrintClient: public ITcpClient
 public:
     virtual void sendData() = 0;
     virtual string genSendData() = 0;
-    virtual void setData(unsigned id, unsigned uID, const string &name, const string &printer, const string &devIP, const string &time) = 0;
+    virtual void setData(unsigned uID, const string &name, const string &printer, const string &devName, const string &time) = 0;
 };
 
 
-class PrintClient: public IPrintClient
+class PrintClient: public TcpClient, public IPrintClient
 {
 private:
-    unsigned _id;
     unsigned _uID;
     string _name;
     string _printer;
-    string _devIP;
+    string _devName;
     string _time;
     SendData sdata;
 
 public:
-    inline void setData(unsigned id, unsigned uID, const string &name, const string &printer, const string &devIP, const string &time) {
-        _id = id;
+    inline void setData(unsigned uID, const string &name, const string &printer, const string &devName, const string &time) {
         _uID = uID;
         _name = name;
-        _devIP = devIP;
+        _devName = devName;
         _time = time;
         _printer = printer;
     }
@@ -64,6 +62,38 @@ public:
      * Sending data to print server
      */
     void sendData();
+
+    /**
+     * Connect to remote server
+     * @ip: remote ip address
+     * @port: remote socket port
+     *
+     * throw: error if fail connecting
+     */
+    void connect(const string &ip, unsigned port) { TcpClient::connect(ip, port); }
+
+    /**
+     * Send data to server
+     * @data: sending data
+     * @len: data length
+     *
+     * throw: error if fail sending data
+     */
+    void send(const void *data, size_t len) const { TcpClient::send(data, len); }
+
+    /**
+     * Receive data from server
+     * @data: receiving data
+     * @len: data length
+     *
+     * throw: error if fail receiving data
+     */
+    void recv(void *data, size_t len) const { TcpClient::recv(data, len); }
+
+    /*
+     * Close connection
+     */
+    void close(void) const { TcpClient::close(); }
 };
 
 

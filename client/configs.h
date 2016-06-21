@@ -22,8 +22,10 @@ typedef struct {
     string username;
     string passwd;
     unsigned pages;
-    string devices[DEV_COUNT];
-    string printers[DEV_COUNT];
+    string devIps[DEV_COUNT];
+    string devNames[DEV_COUNT];
+    string printIps[DEV_COUNT];
+    string printNames[DEV_COUNT];
 } WebCfg;
 
 typedef struct {

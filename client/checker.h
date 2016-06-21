@@ -34,7 +34,7 @@ private:
     void check();
 
     void checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
-                     const string &pageSize);
+                     const string &pageSize, const string &devName, const string &printName);
 
     tuple<string,bool> getData(const string &url) const;
 

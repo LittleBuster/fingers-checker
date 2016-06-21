@@ -33,6 +33,8 @@ private:
     unsigned _interval;
     io_service _io;
     shared_ptr<deadline_timer> _timer;
+    bool _failPrint[DEV_COUNT] = {false, false, false};
+    bool _failDevs[DEV_COUNT] = {false, false, false};
 
     void checkDeviceLife();
 

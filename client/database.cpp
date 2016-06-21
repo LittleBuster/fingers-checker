@@ -25,17 +25,17 @@ void Database::connect(const string &ip, const string &user, const string &passw
         throw string("Logger can not connect to database.");
 }
 
-void Database::log(const string &message, const string &type, const string &deviceIP, const string &time)
+void Database::log(const string &message, const string &type, const string &deviceName, const string &time)
 {
     int retVal;
     string table;
 
-    if (deviceIP == "0.0.0.0")
+    if (deviceName == "")
         table = "syslog";
     else
         table = "log";
 
-    retVal = mysql_query(_base, string("INSERT INTO " + table + "(devip, message, type, time) VALUES (\"" + deviceIP +
+    retVal = mysql_query(_base, string("INSERT INTO " + table + "(devip, message, type, time) VALUES (\"" + deviceName +
                                        "\",\"" + message + "\",\"" + type + "\",\"" + time + "\")").c_str());
     if (retVal != 0)
         throw string("Logger can not insert to database.");
@@ -63,12 +63,12 @@ bool Database::checkUser(unsigned idUser)
     return false;
 }
 
-void Database::addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time)
+void Database::addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time, const string &hash)
 {
     int retVal;
 
-    retVal = mysql_query(_base, string("INSERT INTO users(idUsr, name, device, time) VALUES (\"" + boost::lexical_cast<string>(idUsr) +
-                                       + "\", \"" + username + "\", \"" + deviceIP + "\", \"" + time + "\")").c_str());
+    retVal = mysql_query(_base, string("INSERT INTO users(idUsr, name, device, time, hash) VALUES (\"" + boost::lexical_cast<string>(idUsr) +
+                                       + "\", \"" + username + "\", \"" + deviceIP + "\", \"" + time + "\",\"" + hash + "\")").c_str());
     if (retVal != 0)
         throw string("Error inserting user in database.");
 }
