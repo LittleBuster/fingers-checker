@@ -16,7 +16,6 @@
 #include "configs.h"
 #include "ichecker.h"
 #include <tuple>
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
 using namespace std;

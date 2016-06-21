@@ -45,10 +45,9 @@ void TcpClient::send(const void *data, size_t len) const
 
 void TcpClient::recv(void *data, size_t len) const
 {
-    size_t r_len;
     boost::system::error_code error;
 
-    r_len = _client->read_some(boost::asio::buffer(data, len), error);
+    _client->read_some(boost::asio::buffer(data, len), error);
     if (error == boost::asio::error::eof)
         return;
     else if (error)

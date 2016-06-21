@@ -8,7 +8,7 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-LIBS += -lcurl -lboost_system -lpthread -lmysqlclient -lboost_thread
+LIBS += -lcurl -lboost_system -lpthread -lmysqlclient -lboost_thread -lssl -lcrypto
 
 SOURCES += main.cpp \
             app.cpp \
@@ -19,7 +19,8 @@ SOURCES += main.cpp \
             notify.cpp \
             tcpclient.cpp \
     threadmanager.cpp \
-    devicechecker.cpp
+    devicechecker.cpp \
+    printclient.cpp
 
 HEADERS += \
     app.h \
@@ -31,4 +32,5 @@ HEADERS += \
     tcpclient.h \
     threadmanager.h \
     devicechecker.h \
-    ichecker.h
+    ichecker.h \
+    printclient.h

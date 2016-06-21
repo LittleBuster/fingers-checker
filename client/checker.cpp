@@ -14,6 +14,7 @@
 #include <tuple>
 #include <curl/curl.h>
 #include <thread>
+#include <functional>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
@@ -39,7 +40,7 @@ void Checker::check()
      * Check data from device
      */
     for (unsigned i = 0; i < DEV_COUNT; i++) {
-        thread th(boost::bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd,
+        thread th(bind(&Checker::checkDevice, this, wc.devices[i], wc.printers[i], wc.username, wc.passwd,
                               boost::lexical_cast<string>(wc.pages)));
         th.detach();
     }
@@ -48,7 +49,7 @@ void Checker::check()
      * Next time cycle
      */
     _timer->expires_at(_timer->expires_at() + boost::posix_time::seconds(_interval));
-    _timer->async_wait(boost::bind(&Checker::check, this));
+    _timer->async_wait(bind(&Checker::check, this));
 }
 
 void Checker::checkDevice(const string &devIp, const string &printer, const string &user, const string &passwd,
@@ -220,6 +221,6 @@ Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 void Checker::start()
 {
     _timer = make_shared<deadline_timer>(_io, boost::posix_time::seconds(_interval));
-    _timer->async_wait(boost::bind(&Checker::check, this));
+    _timer->async_wait(bind(&Checker::check, this));
     _io.run();
 }
