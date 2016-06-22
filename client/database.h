@@ -21,6 +21,7 @@ class IDatabase
 {
 public:
     virtual void connect(const string &ip, const string &user, const string &passwd, const string &base) = 0;
+    virtual void log(const string &message, const string &type, const string &time) = 0;
     virtual void log(const string &message, const string &type, const string &deviceName, const string &time) = 0;
     virtual bool checkUser(unsigned idUser) = 0;
     virtual void addUser(unsigned idUsr, const string &username, const string &deviceIP, const string &time, const string &hash) = 0;
@@ -49,7 +50,17 @@ public:
      * Remote logging
      * @message: log message
      * @type: type of message
-     * @deviceIP: IP address of logging device
+     * @time: now time
+     *
+     * throw: error if fail inserting message to base
+     */
+    void log(const string &message, const string &type, const string &time);
+
+    /**
+     * Remote logging
+     * @message: log message
+     * @type: type of message
+     * @deviceName: name of logging device
      * @time: now time
      *
      * throw: error if fail inserting message to base

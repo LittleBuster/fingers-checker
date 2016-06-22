@@ -65,11 +65,13 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
          */
         const tuple<string, bool> &auth = getData("http://" + devIp + "/chk.cgi?userid=" + user + "&userpwd=" + passwd);
         if (get<1>(auth) == true) {
-            _log->local("Can not connect to Auth.xml", LOG_ERROR);
+            _log->local(devName + ": Can not connect to authorization server.", LOG_ERROR);
+            _log->remote("Can not connect to authorization server.", LOG_ERROR, devName);
             break;
         }
         if (get<0>(auth) == "") {
-            _log->local("Empty file Auth.xml", LOG_ERROR);
+            _log->local(devName + ": Empty file Auth.xml", LOG_ERROR);
+            _log->remote("Empty file Auth.xml", LOG_ERROR, devName);
             break;
         }
         stringstream stream(get<0>(auth));
@@ -78,7 +80,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
             boost::property_tree::read_xml(stream, propertyTree);
         }
         catch(...) {
-            _log->local("Fail reading keys.", LOG_ERROR);
+            _log->local(devName + ": Fail reading keys.", LOG_ERROR);
+            _log->remote("Fail reading keys.", LOG_ERROR, devName);
             break;
         }
 
@@ -88,7 +91,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                 userName = v.second.get<string>("user");
                 userKey = v.second.get<string>("userkey");
             } catch (...) {
-                _log->local("Fail reading keys.", LOG_ERROR);
+                _log->local(devName + ": Fail reading user keys.", LOG_ERROR);
+                _log->remote("Fail reading user keys.", LOG_ERROR, devName);
                 isOk = false;
                 break;
             }
@@ -106,11 +110,13 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                                                   + nowdate + "&edate=" + nowdate + "&start=0&pagesize=" + pageSize
                                                   + "&user=" + userName + "&userkey=" + userKey);
         if (get<1>(data) == true) {
-            _log->local("Can not connect to Data.xml", LOG_ERROR);
+            _log->local(devName + ": Can not connect to data server.", LOG_ERROR);
+            _log->remote("Can not connect to data server.", LOG_ERROR, devName);
             break;
         }
         if (get<0>(data) == "") {
-            _log->local("Empty file Data.xml", LOG_ERROR);
+            _log->local(devName + ": Empty file Data.xml", LOG_ERROR);
+            _log->remote("Empty file Data.xml", LOG_ERROR, devName);
             break;
         }
         stringstream streamData(get<0>(data));
@@ -120,7 +126,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
             p3 = p2.get_child("document.items");
         }
         catch(...) {
-            _log->local("Fail reading data.", LOG_ERROR);
+            _log->local(devName + ": Fail reading data.", LOG_ERROR);
+            _log->remote("Fail reading data.", LOG_ERROR, devName);
             break;
         }
 
@@ -131,7 +138,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
             db.connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
         }
         catch (const string &err) {
-            _log->local(err, LOG_ERROR);
+            _log->local(devName + ": CheckUser: " + err, LOG_ERROR);
+            _log->remote("CheckUser: " + err, LOG_ERROR, devName);
             break;
         }
 
@@ -142,7 +150,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                 retVal = db.checkUser(v.second.get<unsigned>("userid"));
             }
             catch(const string &err) {
-                _log->local("CheckUser: " + err, LOG_ERROR);
+                _log->local(devName + ": CheckUser: " + err, LOG_ERROR);
+                _log->remote("CheckUser: " + err, LOG_ERROR, devName);
                 continue;
             }
             if (!retVal) {
@@ -158,7 +167,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                     pclient.connect(printer, 6000);
                 }
                 catch(const string &err) {
-                    _log->local("PrintClient: " + err, LOG_ERROR);
+                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
+                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
                 }
                 try {
                     pclient.setData(v.second.get<unsigned>("userid"), user, printName, devName, nowdate);
@@ -167,7 +177,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                 }
                 catch (const string &err) {
                     pclient.close();
-                    _log->local("PrintClient: " + err, LOG_ERROR);
+                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
+                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
                 }
                 pclient.close();
 
@@ -179,7 +190,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                                hash);
                 }
                 catch (const string &err) {
-                    _log->local("CheckUser: " + err, LOG_ERROR);
+                    _log->local(devName + ": CheckUser: " + err, LOG_ERROR);
+                    _log->remote("CheckUser: " + err, LOG_ERROR, devName);
                     continue;
                 }
             }

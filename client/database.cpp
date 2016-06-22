@@ -25,17 +25,23 @@ void Database::connect(const string &ip, const string &user, const string &passw
         throw string("Logger can not connect to database.");
 }
 
+void Database::log(const string &message, const string &type, const string &time)
+{
+    int retVal;
+    string table;
+
+    retVal = mysql_query(_base, string("INSERT INTO syslog(message, type, time) VALUES (\"" + message + "\",\"" + type
+                                       + "\",\"" + time + "\")").c_str());
+    if (retVal != 0)
+        throw string("Logger can not insert to database.");
+}
+
 void Database::log(const string &message, const string &type, const string &deviceName, const string &time)
 {
     int retVal;
     string table;
 
-    if (deviceName == "")
-        table = "syslog";
-    else
-        table = "log";
-
-    retVal = mysql_query(_base, string("INSERT INTO " + table + "(devip, message, type, time) VALUES (\"" + deviceName +
+    retVal = mysql_query(_base, string("INSERT INTO log(device, message, type, time) VALUES (\"" + deviceName +
                                        "\",\"" + message + "\",\"" + type + "\",\"" + time + "\")").c_str());
     if (retVal != 0)
         throw string("Logger can not insert to database.");

@@ -39,7 +39,8 @@ void DeviceChecker::checkDeviceLife()
                                       boost::lexical_cast<string>(time) + "%0AType:%20ERROR%0AIssue:%20Connection failed.");
             }
             catch(const string &err) {
-                _log->local(err, LOG_WARNING);
+                _log->local(wc.devNames[i] + ": DeviceChecker: " + err, LOG_WARNING);
+                _log->remote("DeviceChecker: " + err, LOG_WARNING, wc.devNames[i]);
             }
         }
         retVal = _notify->checkDevice(wc.printIps[i]);
@@ -53,7 +54,8 @@ void DeviceChecker::checkDeviceLife()
                                       boost::lexical_cast<string>(time) + "%0AType:%20ERROR%0AIssue:%20Connection failed.");
             }
             catch(const string &err) {
-                _log->local(err, LOG_WARNING);
+                _log->local(wc.devNames[i] + ": DeviceChecker: " + err, LOG_WARNING);
+                _log->remote("DeviceChecker: " + err, LOG_WARNING, wc.devNames[i]);
             }
         }
     }

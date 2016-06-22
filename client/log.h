@@ -33,7 +33,8 @@ class ILog
 public:
     virtual void setLogFile(const string &filepath) = 0;
     virtual void local(const string &message, const LogType log_type) = 0;
-    virtual void remote(const string &message, const LogType logType, const string &devIp) = 0;
+    virtual void remote(const string &message, const LogType logType) = 0;
+    virtual void remote(const string &message, const LogType logType, const string &devName) = 0;
 };
 
 
@@ -76,11 +77,20 @@ public:
      * Saving log data to database
      * @message: log message
      * @logType: message type
-     * @devIP: IP address of device
      *
      * throw: error if fail connect to db or insert log fail
      */
-    void remote(const string &message, const LogType logType, const string &devIp);
+    void remote(const string &message, const LogType logType);
+
+    /**
+     * Saving log data to database
+     * @message: log message
+     * @logType: message type
+     * @devName: name of device
+     *
+     * throw: error if fail connect to db or insert log fail
+     */
+    void remote(const string &message, const LogType logType, const string &devName);
 };
 
 
