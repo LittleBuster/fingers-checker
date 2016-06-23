@@ -38,8 +38,6 @@ private:
 
     tuple<string,bool> getData(const string &url) const;
 
-    string dateToNum(const boost::posix_time::ptime &time);
-
 public:
     explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 

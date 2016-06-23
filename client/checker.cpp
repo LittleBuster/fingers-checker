@@ -21,6 +21,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/date_time.hpp>
 #include <boost/algorithm/string.hpp>
+#include "helper.h"
 
 
 static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
@@ -40,12 +41,14 @@ void Checker::check()
     /*
      * Check data from device
      */
-    for (unsigned i = 0; i < DEV_COUNT; i++) {
+    /*for (unsigned i = 0; i < DEV_COUNT; i++) {
         thread th(bind(&Checker::checkDevice, this, wc.devIps[i], wc.printIps[i], wc.username, wc.passwd,
                               boost::lexical_cast<string>(wc.pages), wc.devNames[i], wc.printNames[i]));
         th.detach();
-    }
+    }*/
 
+    for (size_t i = 0; i < DEV_COUNT; i++)
+        checkDevice(wc.devIps[i], wc.printIps[i], wc.username, wc.passwd,  boost::lexical_cast<string>(wc.pages), wc.devNames[i], wc.printNames[i]);
     /*
      * Next time cycle
      */
@@ -100,7 +103,7 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         if (!isOk)
             break;
 
-        cout << "Admin: " << userName << " Key: " << userKey << endl;
+        cout << "[" +  devName + "] Admin: " << userName << " Key: " << userKey << endl;
 
         /*
          * Reading Data.xml
@@ -109,15 +112,16 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         const tuple<string, bool> &data = getData("http://" + devIp + "/query.cgi?userid=" + user + "&sdate="
                                                   + nowdate + "&edate=" + nowdate + "&start=0&pagesize=" + pageSize
                                                   + "&user=" + userName + "&userkey=" + userKey);
+
         if (get<1>(data) == true) {
             _log->local(devName + ": Can not connect to data server.", LOG_ERROR);
             _log->remote("Can not connect to data server.", LOG_ERROR, devName);
-            break;
+            return;
         }
         if (get<0>(data) == "") {
             _log->local(devName + ": Empty file Data.xml", LOG_ERROR);
             _log->remote("Empty file Data.xml", LOG_ERROR, devName);
-            break;
+            return;
         }
         stringstream streamData(get<0>(data));
         boost::property_tree::ptree p2, p3;
@@ -128,7 +132,7 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
         catch(...) {
             _log->local(devName + ": Fail reading data.", LOG_ERROR);
             _log->remote("Fail reading data.", LOG_ERROR, devName);
-            break;
+            return;
         }
 
         const auto &dbc = _cfg->getDatabaseCfg();
@@ -163,24 +167,8 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                 cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
                         " Printer: " << printer << endl;
                 PrintClient pclient;
-                try {
-                    pclient.connect(printer, 6000);
-                }
-                catch(const string &err) {
-                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
-                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
-                }
-                try {
-                    pclient.setData(v.second.get<unsigned>("userid"), user, printName, devName, nowdate);
-                    hash = pclient.genSendData();
-                    pclient.sendData();
-                }
-                catch (const string &err) {
-                    pclient.close();
-                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
-                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
-                }
-                pclient.close();
+                pclient.setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), printName, devName, nowdate);
+                hash = pclient.genSendData();
 
                 /*
                  * Add new user in database
@@ -194,6 +182,25 @@ void Checker::checkDevice(const string &devIp, const string &printer, const stri
                     _log->remote("CheckUser: " + err, LOG_ERROR, devName);
                     continue;
                 }
+
+                try {
+                    pclient.connect(printer, 6000);
+                }
+                catch(const string &err) {
+                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
+                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
+                    continue;
+                }
+                try {
+                    pclient.sendData();
+                }
+                catch (const string &err) {
+                    pclient.close();
+                    _log->local(devName + ": PrintClient: " + err, LOG_ERROR);
+                    _log->remote("PrintClient: " + err, LOG_ERROR, devName);
+                    continue;
+                }
+                pclient.close();
             }
         }
         db.close();
@@ -218,46 +225,6 @@ tuple<string, bool> Checker::getData(const string &url) const
     } else
         err = true;
     return make_tuple(content, err);
-}
-
-string Checker::dateToNum(const boost::posix_time::ptime &time)
-{
-    vector<string> dt;
-    vector<string> d;
-
-    const string &datetime = boost::lexical_cast<string>(time);
-    boost::split(dt, datetime, boost::is_any_of(" "));
-    boost::split(d, dt[0], boost::is_any_of("-"));
-
-    string out = d[0] + "-";
-
-    if (d[1] == "Jan")
-        out += "1";
-    if (d[1] == "Feb")
-        out += "2";
-    if (d[1] == "Mar")
-        out += "3";
-    if (d[1] == "Apr")
-        out += "4";
-    if (d[1] == "May")
-        out += "5";
-    if (d[1] == "Jun")
-        out += "6";
-    if (d[1] == "Jul")
-        out += "7";
-    if (d[1] == "Aug")
-        out += "8";
-    if (d[1] == "Sep")
-        out += "9";
-    if (d[1] == "Oct")
-        out += "10";
-    if (d[1] == "Nov")
-        out += "11";
-    if (d[1] == "Dec")
-        out += "12";
-
-    out += "-" + d[2];
-    return out;
 }
 
 Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)

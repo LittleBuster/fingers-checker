@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/date_time.hpp>
+#include "helper.h"
 
 
 Log::Log(const shared_ptr<IConfigs> &cfg, const shared_ptr<IDatabase> &db): _logPath("")
@@ -94,7 +95,7 @@ void Log::remote(const string &message, const LogType logType, const string &dev
         return;
     }
     try {
-        _db->log(message, ltype, devName, boost::lexical_cast<string>(dt));
+        _db->log(message, ltype, devName, dateTimeToNum(dt));
         _db->close();
     }
     catch (const string &err) {
@@ -132,7 +133,7 @@ void Log::remote(const string &message, const LogType logType)
         return;
     }
     try {
-        _db->log(message, ltype, boost::lexical_cast<string>(dt));
+        _db->log(message, ltype, dateTimeToNum(dt));
         _db->close();
     }
     catch (const string &err) {
