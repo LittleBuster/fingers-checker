@@ -116,10 +116,14 @@ void Checker::checkDevice(size_t index)
     try {
         boost::property_tree::read_xml(streamData, p2);
         p3 = p2.get_child("document.items");
+        _isReadErr[index] = false;
     }
     catch(...) {
-        _log->local(wc.devNames[index] + ": Fail reading data.", LOG_ERROR);
-        _log->remote("Fail reading data.", LOG_ERROR, wc.devNames[index]);
+        if (!_isReadErr[index]) {
+            _isReadErr[index] = true;
+            _log->local(wc.devNames[index] + ": Fail reading data.", LOG_ERROR);
+            _log->remote("Fail reading data.", LOG_ERROR, wc.devNames[index]);
+        }
         return;
     }
 
@@ -171,10 +175,14 @@ void Checker::checkDevice(size_t index)
             const auto &sc = _cfg->getServerCfg();
             try {
                 _pClient->connect(sc.ip, sc.port);
+                _isPrintErr[index] = false;
             }
             catch(const string &err) {
-                _log->local(wc.devNames[index] + ": PrintClient: " + err, LOG_ERROR);
-                _log->remote("PrintClient: " + err, LOG_ERROR, wc.devNames[index]);
+                if (!_isPrintErr[index]) {
+                    _isPrintErr[index] = true;
+                    _log->local(wc.devNames[index] + ": PrintClient: " + err, LOG_ERROR);
+                    _log->remote("PrintClient: " + err, LOG_ERROR, wc.devNames[index]);
+                }
                 continue;
             }
             try {

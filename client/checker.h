@@ -34,6 +34,8 @@ private:
     io_service _io;
     shared_ptr<deadline_timer> _timer;
     unsigned _interval;
+    bool _isReadErr[DEV_COUNT] = {false, false, false};
+    bool _isPrintErr[DEV_COUNT] = {false, false, false};
 
     void check();
 
