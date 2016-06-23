@@ -20,7 +20,8 @@ SOURCES += main.cpp \
             tcpclient.cpp \
     threadmanager.cpp \
     devicechecker.cpp \
-    printclient.cpp
+    printclient.cpp \
+    helper.cpp
 
 HEADERS += \
     app.h \
@@ -33,4 +34,5 @@ HEADERS += \
     threadmanager.h \
     devicechecker.h \
     ichecker.h \
-    printclient.h
+    printclient.h \
+    helper.h

@@ -17,9 +17,6 @@
 
 string PrintClient::genSendData()
 {
-
-cout << _name << endl;
-
     string sname;
     vector<string> parts;
     boost::split(parts, _name, boost::is_any_of(" "));
