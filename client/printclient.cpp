@@ -25,36 +25,23 @@ string PrintClient::genSendData()
     strncpy(sdata.shortName, sname.c_str(), 50);
     strncpy(sdata.printer, _printer.c_str(), 10);
     sdata.uid = _uID;
-
-    vector<string> datetime;
-    boost::split(datetime, _time, boost::is_any_of(" "));
-    strncpy(sdata.date, datetime[0].c_str(), 20);
-    strncpy(sdata.time, datetime[1].c_str(), 20);
+    strncpy(sdata.time, _time.c_str(), 20);
 
     /*
      * Generate hash
      */
     string outHash = "";
-    string outHash2 = "";
     string inTxt = boost::lexical_cast<string>(_uID) + _name + _printer + _devName + _time;
     unsigned char result[MD5_DIGEST_LENGTH];
- 
-    MD5((unsigned char *)inTxt.c_str(), inTxt.size(), result);
-    for (size_t i = 0; i < 8; i++) {
+
+    MD5(reinterpret_cast<const unsigned char *>(inTxt.c_str()), inTxt.size(), result);
+    for (size_t i = 0; i < 16; i++) {
         char s[5];
         sprintf(s, "%02X", result[i]);
         outHash += string(s);
     }
-    strncpy(sdata.hash1, outHash.c_str(), 8);
-
-    for (size_t i = 8; i < 16; i++) {
-        char s[5];
-        sprintf(s, "%02X", result[i]);
-        outHash2 += string(s);
-    }
-    strncpy(sdata.hash2, outHash2.c_str(), 8);
-
-    return outHash + outHash2;
+    strncpy(sdata.hash, outHash.c_str(), 8);
+    return outHash;
 }
 
 void PrintClient::sendData()

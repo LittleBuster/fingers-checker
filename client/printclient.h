@@ -18,10 +18,8 @@ typedef struct {
     unsigned uid;
     char shortName[50];
     char printer[10];
-    char date[20];
-    char time[20];
-    char hash1[8];
-    char hash2[8];
+    char time[40];
+    char hash[16];
 } SendData;
 
 
