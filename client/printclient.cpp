@@ -17,12 +17,7 @@
 
 string PrintClient::genSendData()
 {
-    string sname;
-    vector<string> parts;
-    boost::split(parts, _name, boost::is_any_of(" "));
-    sname = parts[0] + " " + parts[1][0] + ". " + parts[2][0] + ".";
-
-    strncpy(sdata.shortName, sname.c_str(), 50);
+    strncpy(sdata.shortName, _name.c_str(), 50);
     strncpy(sdata.printer, _printer.c_str(), 10);
     sdata.uid = _uID;
     strncpy(sdata.time, _time.c_str(), 20);
@@ -35,7 +30,7 @@ string PrintClient::genSendData()
     unsigned char result[MD5_DIGEST_LENGTH];
 
     MD5(reinterpret_cast<const unsigned char *>(inTxt.c_str()), inTxt.size(), result);
-    for (size_t i = 0; i < 16; i++) {
+    for (size_t i = 0; i < MD5_DIGEST_LENGTH; i++) {
         char s[5];
         sprintf(s, "%02X", result[i]);
         outHash += string(s);
