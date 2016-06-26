@@ -156,7 +156,8 @@ void Checker::checkDevice(size_t index)
              */
             cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
                     " Printer: " << wc.printNames[index] << endl;
-            _pClient->setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index], nowdate);
+            _pClient->setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index],
+                              dateTimeToNum(boost::posix_time::second_clock::local_time()));
             hash = _pClient->genSendData();
 
             /*

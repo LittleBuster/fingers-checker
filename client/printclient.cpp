@@ -40,7 +40,7 @@ string PrintClient::genSendData()
         sprintf(s, "%02X", result[i]);
         outHash += string(s);
     }
-    strncpy(sdata.hash, outHash.c_str(), 8);
+    strncpy(sdata.hash, outHash.c_str(), MD5_DIGEST_LENGTH);
     return outHash;
 }
 
