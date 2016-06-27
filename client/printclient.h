@@ -19,7 +19,7 @@ typedef struct {
     char shortName[50];
     char printer[10];
     char time[40];
-    char hash[16];
+    char hash[32];
 } SendData;
 
 

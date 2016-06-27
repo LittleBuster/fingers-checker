@@ -157,7 +157,7 @@ void Checker::checkDevice(size_t index)
             cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
                     " Printer: " << wc.printNames[index] << endl;
             _pClient->setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index],
-                              dateTimeToNum(boost::posix_time::second_clock::local_time()));
+                              v.second.get<string>("date"));
             hash = _pClient->genSendData();
 
             /*
@@ -170,6 +170,12 @@ void Checker::checkDevice(size_t index)
             catch (const string &err) {
                 _log->local(wc.devNames[index] + ": CheckUser: " + err, LOG_ERROR);
                 _log->remote("CheckUser: " + err, LOG_ERROR, wc.devNames[index]);
+                continue;
+            }
+
+            boost::gregorian::date dt(boost::gregorian::day_clock::local_day());
+            if (boost::lexical_cast<string>(dt.day_of_week()) == "Sat" || boost::lexical_cast<string>(dt.day_of_week()) == "Sun") {
+                cout << "Weekend!" << endl;
                 continue;
             }
 

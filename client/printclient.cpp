@@ -32,10 +32,12 @@ string PrintClient::genSendData()
     MD5(reinterpret_cast<const unsigned char *>(inTxt.c_str()), inTxt.size(), result);
     for (size_t i = 0; i < MD5_DIGEST_LENGTH; i++) {
         char s[5];
+        memset(s, 0x00, 5);
         sprintf(s, "%02X", result[i]);
         outHash += string(s);
     }
-    strncpy(sdata.hash, outHash.c_str(), MD5_DIGEST_LENGTH);
+    strncpy(sdata.hash, outHash.c_str(), 32);
+cout << outHash << endl;
     return outHash;
 }
 
