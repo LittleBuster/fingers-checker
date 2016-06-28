@@ -37,7 +37,6 @@ string PrintClient::genSendData()
         outHash += string(s);
     }
     strncpy(sdata.hash, outHash.c_str(), 32);
-cout << outHash << endl;
     return outHash;
 }
 

@@ -37,8 +37,10 @@ static size_t writer(char *ptr, size_t size, size_t nmemb, string* data)
 
 void Checker::check()
 {
-    for (size_t i = 0; i < DEV_COUNT; i++)
-        checkDevice(i);
+    for (size_t i = 0; i < DEV_COUNT; i++) {
+        thread th(bind(&Checker::checkDevice, this, i));
+        th.detach();
+    }
     /*
      * Next time cycle
      */
@@ -57,13 +59,17 @@ void Checker::checkDevice(size_t index)
      */
     const tuple<string, bool> &auth = getData("http://" + wc.devIps[index] + "/chk.cgi?userid=" + wc.username + "&userpwd=" + wc.passwd);
     if (get<1>(auth) == true) {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": Can not connect to authorization server.", LOG_ERROR);
         _log->remote("Can not connect to authorization server.", LOG_ERROR, wc.devNames[index]);
+        mtx.unlock();
         return;
     }
     if (get<0>(auth) == "") {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": Empty file Auth.xml", LOG_ERROR);
         _log->remote("Empty file Auth.xml", LOG_ERROR, wc.devNames[index]);
+        mtx.unlock();
         return;
     }
     stringstream stream(get<0>(auth));
@@ -72,8 +78,10 @@ void Checker::checkDevice(size_t index)
         boost::property_tree::read_xml(stream, propertyTree);
     }
     catch(...) {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": Fail reading keys.", LOG_ERROR);
         _log->remote("Fail reading keys.", LOG_ERROR, wc.devNames[index]);
+        mtx.unlock();
         return;
     }
 
@@ -83,15 +91,20 @@ void Checker::checkDevice(size_t index)
             userName = v.second.get<string>("user");
             userKey = v.second.get<string>("userkey");
         } catch (...) {
+            mtx.lock();
             _log->local(wc.devNames[index] + ": Fail reading user keys.", LOG_ERROR);
             _log->remote("Fail reading user keys.", LOG_ERROR, wc.devNames[index]);
+            mtx.unlock();
             isOk = false;
             return;
         }
     }
     if (!isOk)
         return;
+
+    mtx.lock();
     cout << "[" +  wc.devNames[index] + "] Admin: " << userName << " Key: " << userKey << endl;
+    mtx.unlock();
 
     /*
      * Reading Data.xml
@@ -102,13 +115,17 @@ void Checker::checkDevice(size_t index)
                                               + "&user=" + userName + "&userkey=" + userKey);
 
     if (get<1>(data) == true) {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": Can not connect to data server.", LOG_ERROR);
         _log->remote("Can not connect to data server.", LOG_ERROR, wc.devNames[index]);
+        mtx.unlock();
         return;
     }
     if (get<0>(data) == "") {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": Empty file Data.xml", LOG_ERROR);
         _log->remote("Empty file Data.xml", LOG_ERROR, wc.devNames[index]);
+        mtx.unlock();
         return;
     }
     stringstream streamData(get<0>(data));
@@ -116,36 +133,46 @@ void Checker::checkDevice(size_t index)
     try {
         boost::property_tree::read_xml(streamData, p2);
         p3 = p2.get_child("document.items");
+        mtx.lock();
         _isReadErr[index] = false;
+        mtx.unlock();
     }
     catch(...) {
+        mtx.lock();
         if (!_isReadErr[index]) {
             _isReadErr[index] = true;
             _log->local(wc.devNames[index] + ": Fail reading data.", LOG_ERROR);
             _log->remote("Fail reading data.", LOG_ERROR, wc.devNames[index]);
         }
+        mtx.unlock();
         return;
     }
 
     const auto &dbc = _cfg->getDatabaseCfg();
+    Database db;
     try {
-        _db->connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
+        db.connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
     }
     catch (const string &err) {
+        mtx.lock();
         _log->local(wc.devNames[index] + ": CheckUser: " + err, LOG_ERROR);
         _log->remote("CheckUser: " + err, LOG_ERROR, wc.devNames[index]);
+         mtx.unlock();
         return;
     }
 
     for (const auto &v : p3) {
         bool retVal;
+        PrintClient pClient;
 
         try {
-            retVal = _db->checkUser(v.second.get<unsigned>("userid"));
+            retVal = db.checkUser(v.second.get<unsigned>("userid"));
         }
         catch(const string &err) {
+            mtx.lock();
             _log->local(wc.devNames[index] + ": CheckUser: " + err, LOG_ERROR);
             _log->remote("CheckUser: " + err, LOG_ERROR, wc.devNames[index]);
+            mtx.unlock();
             continue;
         }
         if (!retVal) {
@@ -154,57 +181,69 @@ void Checker::checkDevice(size_t index)
             /*
              * PRINT TICKET
              */
+            mtx.lock();
             cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
                     " Printer: " << wc.printNames[index] << endl;
-            _pClient->setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index],
+            mtx.unlock();
+            pClient.setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index],
                               v.second.get<string>("date"));
-            hash = _pClient->genSendData();
+            hash = pClient.genSendData();
 
             /*
              * Add new user in database
              */
             try {
-                _db->addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.devNames[index], v.second.get<string>("date"),
+                db.addUser(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.devNames[index], v.second.get<string>("date"),
                            hash);
             }
             catch (const string &err) {
+                mtx.lock();
                 _log->local(wc.devNames[index] + ": CheckUser: " + err, LOG_ERROR);
                 _log->remote("CheckUser: " + err, LOG_ERROR, wc.devNames[index]);
+                mtx.unlock();
                 continue;
             }
 
             boost::gregorian::date dt(boost::gregorian::day_clock::local_day());
             if (boost::lexical_cast<string>(dt.day_of_week()) == "Sat" || boost::lexical_cast<string>(dt.day_of_week()) == "Sun") {
+                mtx.lock();
                 cout << "Weekend!" << endl;
+                mtx.unlock();
                 continue;
             }
 
             const auto &sc = _cfg->getServerCfg();
             try {
-                _pClient->connect(sc.ip, sc.port);
+                pClient.connect(sc.ip, sc.port);
+                mtx.lock();
                 _isPrintErr[index] = false;
+                mtx.unlock();
             }
             catch(const string &err) {
+                mtx.lock();
                 if (!_isPrintErr[index]) {
                     _isPrintErr[index] = true;
                     _log->local(wc.devNames[index] + ": PrintClient: " + err, LOG_ERROR);
                     _log->remote("PrintClient: " + err, LOG_ERROR, wc.devNames[index]);
                 }
+                mtx.unlock();
                 continue;
             }
             try {
-                _pClient->sendData();
+                pClient.sendData();
             }
             catch (const string &err) {
-                _pClient->close();
+                mtx.lock();
+                pClient.close();
                 _log->local(wc.devNames[index] + ": PrintClient: " + err, LOG_ERROR);
                 _log->remote("PrintClient: " + err, LOG_ERROR, wc.devNames[index]);
+                mtx.unlock();
                 continue;
             }
-            _pClient->close();
+            pClient.close();
         }
     }
-    _db->close();
+    db.close();
 }
 
 tuple<string, bool> Checker::getData(const string &url) const
@@ -226,13 +265,10 @@ tuple<string, bool> Checker::getData(const string &url) const
     return make_tuple(content, err);
 }
 
-Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg, const shared_ptr<IDatabase> &db,
-                 const shared_ptr<IPrintClient> &pClient)
+Checker::Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg)
 {
     _log = log;
     _cfg = cfg;
-    _db = db;
-    _pClient = pClient;
 }
 
 void Checker::start()

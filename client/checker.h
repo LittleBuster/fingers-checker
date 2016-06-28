@@ -18,6 +18,7 @@
 #include "printclient.h"
 #include "database.h"
 #include <tuple>
+#include <mutex>
 #include <boost/asio.hpp>
 
 using namespace std;
@@ -29,9 +30,8 @@ class Checker: public IChecker
 private:
     shared_ptr<ILog> _log;
     shared_ptr<IConfigs> _cfg;
-    shared_ptr<IPrintClient> _pClient;
-    shared_ptr<IDatabase> _db;
     io_service _io;
+    mutex mtx;
     shared_ptr<deadline_timer> _timer;
     unsigned _interval;
     bool _isReadErr[DEV_COUNT] = {false, false, false};
@@ -44,8 +44,7 @@ private:
     tuple<string,bool> getData(const string &url) const;
 
 public:
-    explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg, const shared_ptr<IDatabase> &db,
-                     const shared_ptr<IPrintClient> &pClient);
+    explicit Checker(const shared_ptr<ILog> &log, const shared_ptr<IConfigs> &cfg);
 
     inline void setInterval(unsigned interval) { _interval = interval; }
 
