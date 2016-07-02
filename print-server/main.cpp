@@ -18,10 +18,10 @@
 
 int main(int argc, char *argv[])
 {
+    auto qapp = make_shared<QApplication>(argc, argv);
     auto log = make_shared<Log>();
     auto cfg = make_shared<Configs>();
-    auto pServer = make_shared<PrintServer>(log);
-    auto qapp = make_shared<QApplication>(argc, argv);    
+    auto pServer = make_shared<PrintServer>(log);      
 
     auto app = make_shared<App>(qapp, pServer, cfg, log);
     return app->start();

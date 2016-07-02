@@ -10,6 +10,8 @@
  */
 
 #include "tcpserver.h"
+#include <functional>
+#include <thread>
 
 
 void TcpServer::start(unsigned port)
@@ -30,6 +32,7 @@ void TcpServer::start(unsigned port)
             continue;
         }
         auto client = make_shared<TcpClient>(sock);
-        newSession(client);
+        thread th(bind(&TcpServer::newSession, this, client));
+        th.detach();
     }
 }

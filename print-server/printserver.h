@@ -15,6 +15,7 @@
 #include <string>
 #include "tcpserver.h"
 #include "log.h"
+#include <mutex>
 #include <QtPrintSupport/QPrinter>
 
 using namespace std;
@@ -24,14 +25,14 @@ typedef struct {
     char shortName[50];
     char printer[10];
     char time[40];
-    char hash[16];
+    char hash[32];
 } RecvData;
 
 
 class IPrintServer: public ITcpServer
 {
 public:
-    virtual void printTicket(const QString &shortName, const string &printName, const string &time, const string &hash) = 0;
+    virtual void printTicket(const QString &shortName, const string &printName, const string &time, const string &hash, const string &hash2) = 0;
 };
 
 
@@ -40,6 +41,7 @@ class PrintServer final: public IPrintServer, public TcpServer
 private:
     shared_ptr<ILog> _log;
     QPrinter _printer;
+    mutex _mtx;
 
     /**
      * New client connected
@@ -64,7 +66,7 @@ public:
      *
      * throw: unknown error if fail printing
      */
-    void printTicket(const QString &shortName, const string &printName, const string &time, const string &hash);
+    void printTicket(const QString &shortName, const string &printName, const string &time, const string &hash, const string &hash2);
 
     /**
      * Starting tcp server
