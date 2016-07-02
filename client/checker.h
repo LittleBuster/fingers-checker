@@ -36,6 +36,7 @@ private:
     unsigned _interval;
     bool _isReadErr[DEV_COUNT] = {false, false, false};
     bool _isPrintErr[DEV_COUNT] = {false, false, false};
+    bool _isKeysErr[DEV_COUNT] = {false, false, false};
 
     void check();
 

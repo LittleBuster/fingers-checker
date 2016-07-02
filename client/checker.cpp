@@ -76,11 +76,15 @@ void Checker::checkDevice(size_t index)
     boost::property_tree::ptree propertyTree;
     try {
         boost::property_tree::read_xml(stream, propertyTree);
+        _isKeysErr[index] = false;
     }
     catch(...) {
         mtx.lock();
-        _log->local(wc.devNames[index] + ": Fail reading keys.", LOG_ERROR);
-        _log->remote("Fail reading keys.", LOG_ERROR, wc.devNames[index]);
+        if (!_isKeysErr[index]) {
+            _isKeysErr[index] = true;
+            _log->local(wc.devNames[index] + ": Fail reading keys.", LOG_ERROR);
+            _log->remote("Fail reading keys.", LOG_ERROR, wc.devNames[index]);
+        }
         mtx.unlock();
         return;
     }
@@ -165,6 +169,14 @@ void Checker::checkDevice(size_t index)
         bool retVal;
         PrintClient pClient;
 
+        boost::gregorian::date dt(boost::gregorian::day_clock::local_day());
+        if (boost::lexical_cast<string>(dt.day_of_week()) == "Sat" || boost::lexical_cast<string>(dt.day_of_week()) == "Sun") {
+            mtx.lock();
+            cout << "Weekend!" << endl;
+            mtx.unlock();
+            continue;
+        }
+
         try {
             retVal = db.checkUser(v.second.get<unsigned>("userid"));
         }
@@ -200,14 +212,6 @@ void Checker::checkDevice(size_t index)
                 mtx.lock();
                 _log->local(wc.devNames[index] + ": CheckUser: " + err, LOG_ERROR);
                 _log->remote("CheckUser: " + err, LOG_ERROR, wc.devNames[index]);
-                mtx.unlock();
-                continue;
-            }
-
-            boost::gregorian::date dt(boost::gregorian::day_clock::local_day());
-            if (boost::lexical_cast<string>(dt.day_of_week()) == "Sat" || boost::lexical_cast<string>(dt.day_of_week()) == "Sun") {
-                mtx.lock();
-                cout << "Weekend!" << endl;
                 mtx.unlock();
                 continue;
             }

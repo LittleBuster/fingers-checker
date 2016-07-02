@@ -29,8 +29,17 @@ void DeviceChecker::checkDeviceLife()
 
     for (unsigned i = 0; i < DEV_COUNT; i++) {
         retVal = _notify->checkDevice(wc.devIps[i]);
-        if (retVal)
+        if (retVal && _failDevs[i]) {
             _failDevs[i] = false;
+            try {
+                _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devNames[i] + "%0ADate:%20" +
+                                  boost::lexical_cast<string>(time) + "%0AType:%20SUCCEFFUL%0AIssue:%20Device is up.");
+            }
+            catch(const string &err) {
+                _log->local(wc.devNames[i] + ": DeviceChecker: " + err, LOG_WARNING);
+                _log->remote("DeviceChecker: " + err, LOG_WARNING, wc.devNames[i]);
+            }
+        }
 
         if (!retVal && !_failDevs[i]) {
             try {
@@ -44,8 +53,17 @@ void DeviceChecker::checkDeviceLife()
             }
         }
         retVal = _notify->checkDevice(wc.printIps[i]);
-        if (retVal)
+        if (retVal && _failPrint[i]) {
             _failPrint[i] = false;
+            try {
+                _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devNames[i] + "%0ADate:%20" +
+                                  boost::lexical_cast<string>(time) + "%0AType:%20SUCCEFFUL%0AIssue:%20Printer is up.");
+            }
+            catch(const string &err) {
+                _log->local(wc.devNames[i] + ": DeviceChecker: " + err, LOG_WARNING);
+                _log->remote("DeviceChecker: " + err, LOG_WARNING, wc.devNames[i]);
+            }
+        }
 
         if (!retVal && !_failPrint[i]) {
             try {
