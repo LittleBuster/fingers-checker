@@ -33,7 +33,7 @@ void DeviceChecker::checkDeviceLife()
             _failDevs[i] = false;
             try {
                 _notify->sendTelegram("New%20Issue%0AStation:%20" + wc.devNames[i] + "%0ADate:%20" +
-                                  boost::lexical_cast<string>(time) + "%0AType:%20SUCCEFFUL%0AIssue:%20Device is up.");
+                                  boost::lexical_cast<string>(time) + "%0AType:%20INFO%0AIssue:%20Device is up.");
             }
             catch(const string &err) {
                 _log->local(wc.devNames[i] + ": DeviceChecker: " + err, LOG_WARNING);
