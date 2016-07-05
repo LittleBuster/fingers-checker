@@ -1,0 +1,1 @@
+Sc create PrintService binPath= C:\PrintServer\PrintService.exe DisplayName= "Print Service" type= own start= auto
