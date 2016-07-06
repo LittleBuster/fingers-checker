@@ -1,4 +1,4 @@
-/* Fingers checker
+/* Fingers Statistics application
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -17,6 +17,7 @@
 #include <boost/date_time.hpp>
 #include <tuple>
 #include <openssl/md5.h>
+#include "helper.h"
 
 using namespace std;
 
@@ -147,6 +148,7 @@ void MainWindow::on_pbPrint_clicked()
 {
     SendData sdata;
     auto sc = _cfg->getPrintServerCfg();
+    const auto &dbc = _cfg->getDatabaseCfg();
 
     if (!_isExists) {
         string hStr = "";
@@ -154,8 +156,16 @@ void MainWindow::on_pbPrint_clicked()
         MD5_CTX ctx;
         unsigned char uhash[MD5_DIGEST_LENGTH];
         const auto &dt = boost::posix_time::second_clock::local_time();
-        hStr = boost::lexical_cast<string>(_userID) + boost::lexical_cast<string>(dt.date) + _userName;
+        hStr = boost::lexical_cast<string>(_userID) + boost::lexical_cast<string>(dt.date()) + _userName;
 
+        try {
+            _db->connect(dbc.ip, dbc.user, dbc.passwd, dbc.base);
+        }
+        catch (const string &err) {
+            _log->local(err, LOG_ERROR);
+            QMessageBox::critical(this, "Ошибка", "Ошибка соединения с базой данных", QMessageBox::Ok);
+            return;
+        }
         int retVal = MD5_Init(&ctx);
         if (!retVal) {
             _db->close();
@@ -188,19 +198,46 @@ void MainWindow::on_pbPrint_clicked()
         }
         try {
             _db->addUser(_userID, _userName, ui->cbDevice->currentText().toStdString(),
-                         boost::lexical_cast<string>(dt.date), outHash);
+                         dateTimeToNum(boost::posix_time::second_clock::local_time()), outHash);
         }
         catch (const string &err) {
             _log->local(err, LOG_ERROR);
             _db->close();
             QMessageBox::critical(this, "Ошибка", ("Adding user: " + err).c_str(), QMessageBox::Ok);
         }
+        try {
+            _client->connect(sc.ip, sc.port);
+        }
+        catch (const string &err) {
+            _log->local(err, LOG_ERROR);
+            _client->close();
+            QMessageBox::critical(this, "Ошибка", err.c_str(), QMessageBox::Ok);
+            return;
+        }
+        try {
+            strcpy(sdata.shortName, _userName.c_str());
+            strcpy(sdata.printer, ui->comboBox->currentText().toStdString().c_str());
+            strcpy(sdata.time, dateTimeToNum(boost::posix_time::second_clock::local_time()).c_str());
+            strcpy(sdata.hash, outHash.c_str());
+            sdata.uid = _userID;
+            _client->send(&sdata, sizeof(sdata));
+        }
+        catch (const string &err) {
+            _log->local(err, LOG_ERROR);
+            _client->close();
+            QMessageBox::critical(this, "Ошибка", err.c_str(), QMessageBox::Ok);
+            return;
+        }
+        _client->close();
+        QMessageBox::information(this, "Готово", "Чек распечатан.", QMessageBox::Ok);
+        return;
     }
     try {
         _client->connect(sc.ip, sc.port);
     }
     catch (const string &err) {
         _log->local(err, LOG_ERROR);
+        _client->close();
         QMessageBox::critical(this, "Ошибка", err.c_str(), QMessageBox::Ok);
         return;
     }
@@ -220,6 +257,7 @@ void MainWindow::on_pbPrint_clicked()
     }
     _client->close();
     QMessageBox::information(this, "Готово", "Чек распечатан.", QMessageBox::Ok);
+
 }
 
 void MainWindow::on_pushButton_2_clicked()

@@ -9,14 +9,18 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#include "qapp.h"
+#ifndef __HELPER_H__
+#define __HELPER_H__
 
+#include <string>
+#include <boost/date_time.hpp>
 
-QApp::QApp(int argc, char *argv[]): QApplication(argc, argv)
-{
-}
+using namespace std;
 
-int QApp::exec()
-{
-    return QApplication::exec();
-}
+/**
+ * Conver boost datetime to string datetime
+ * @time: boost datetime
+ */
+string dateTimeToNum(const boost::posix_time::ptime &time);
+
+#endif
