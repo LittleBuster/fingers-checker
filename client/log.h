@@ -34,6 +34,7 @@ public:
     virtual void setLogFile(const string &filepath) = 0;
     virtual void setTicketFile(const string &filepath) = 0;
     virtual void local(const string &message, const LogType log_type) = 0;
+    virtual void ticket(const string &message, const LogType logType) = 0;
     virtual void remote(const string &message, const LogType logType) = 0;
     virtual void remote(const string &message, const LogType logType, const string &devName) = 0;
 };
