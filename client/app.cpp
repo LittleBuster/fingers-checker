@@ -26,6 +26,7 @@ App::App(const shared_ptr<IChecker> &checker, const shared_ptr<IChecker> &devChe
 int App::start()
 {
     _log->setLogFile("/var/log/fingers.log");
+    _log->setTicketFile("/var/log/tickets.log");
 
     try {
         _cfg->load("/etc/fingers.cfg");

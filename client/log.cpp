@@ -66,6 +66,25 @@ void Log::local(const string &message, const LogType logType)
     }
 }
 
+void Log::ticket(const string &message, const LogType logType)
+{
+    const string& msg = makeLogMsg(message, logType);
+    cout << msg << endl;
+
+    if (_ticketPath == "")
+        return;
+
+    try {
+        ofstream log;
+        log.open(_ticketPath, ios::out|ios::ate|ios::app);
+        log << msg << "\n";
+        log.close();
+    }
+    catch (...) {
+        cout << "Fail writing to ticket log file." << endl;
+    }
+}
+
 void Log::remote(const string &message, const LogType logType, const string &devName)
 {
     string ltype = "";

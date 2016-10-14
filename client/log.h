@@ -32,6 +32,7 @@ class ILog
 {
 public:
     virtual void setLogFile(const string &filepath) = 0;
+    virtual void setTicketFile(const string &filepath) = 0;
     virtual void local(const string &message, const LogType log_type) = 0;
     virtual void remote(const string &message, const LogType logType) = 0;
     virtual void remote(const string &message, const LogType logType, const string &devName) = 0;
@@ -44,6 +45,7 @@ private:
     shared_ptr<IConfigs> _cfg;
     shared_ptr<IDatabase> _db;
     string _logPath;
+    string _ticketPath;
 
     using ILog::setLogFile;
 
@@ -64,6 +66,11 @@ public:
      */
     inline void setLogFile(const string &filepath) { _logPath = filepath; }
 
+    /*
+     * Set path for saving tickets log data in local file
+     */
+    inline void setTicketFile(const string &filepath) { _ticketPath = filepath; }
+
     /**
      * Saving log data in local file
      * @message: log message
@@ -72,6 +79,15 @@ public:
      * throw: error if fail access to file
      */
     void local(const string &message, const LogType logType);
+
+    /**
+     * Saving ticket log data in local file
+     * @message: log message
+     * @logType: message type
+     *
+     * throw: error if fail access to file
+     */
+    void ticket(const string &message, const LogType logType);
 
     /**
      * Saving log data to database

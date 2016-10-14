@@ -196,6 +196,8 @@ void Checker::checkDevice(size_t index)
             mtx.lock();
             cout << "PRINT TICKET! User: " << v.second.get<unsigned>("userid") << " " << v.second.get<string>("name") <<
                     " Printer: " << wc.printNames[index] << endl;
+            _log->ticket("PRINT TICKET! User: " + v.second.get<unsigned>("userid") + " " << v.second.get<string>("name") +
+                    " Printer: " + wc.printNames[index], LOG_INFORMATION);
             mtx.unlock();
             pClient.setData(v.second.get<unsigned>("userid"), v.second.get<string>("name"), wc.printNames[index], wc.devNames[index],
                               v.second.get<string>("date"));
