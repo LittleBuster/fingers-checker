@@ -6,7 +6,7 @@ TARGET = PrintServer
 CONFIG += console
 CONFIG -= app_bundle
 
-LIBS +=  -lboost_system-mgw49-mt-1_61 -lws2_32
+LIBS += -lws2_32
 
 TEMPLATE = app
 
@@ -14,13 +14,15 @@ SOURCES += main.cpp \
         tcpclient.cpp \
         tcpserver.cpp \
         printserver.cpp \
-    app.cpp \
-    configs.cpp \
-    log.cpp
+        app.cpp \
+        configs.cpp \
+        log.cpp \
+        ext.cpp
 
 HEADERS += tcpclient.h \
         tcpserver.h \
         printserver.h \
-    app.h \
-    configs.h \
-    log.h
+        app.h \
+        configs.h \
+        log.h \
+        ext.h

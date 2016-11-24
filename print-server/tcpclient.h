@@ -13,32 +13,30 @@
 #define __TCPCLIENT_H__
 
 #include <memory>
-#include <boost/asio.hpp>
+#include <Winsock2.h>
+#include <Windows.h>
 
 using namespace std;
-using boost::asio::ip::tcp;
-
 
 class ITcpClient
 {
 public:
-    virtual void connect(const string &ip, unsigned port) = 0;
-    virtual void send(const void *data, size_t len) const = 0;
-    virtual void recv(void *data, size_t len) const = 0;
-    virtual void close(void) const = 0;
+    virtual void connect(const string &ip, unsigned port)=0;
+    virtual void send(const void *data, size_t len) const=0;
+    virtual void recv(void *data, size_t len) const=0;
+    virtual void close(void) const=0;
 };
 
 
 class TcpClient: public ITcpClient
 {
 private:
-    boost::asio::io_service _service;
-    shared_ptr<tcp::socket> _client;
+    SOCKET _client;
 
 public:
-    explicit TcpClient();
+    TcpClient();
 
-    explicit TcpClient(const shared_ptr<tcp::socket> &parent_client);
+    TcpClient(SOCKET sock);
 
     /**
      * Connect to remote server

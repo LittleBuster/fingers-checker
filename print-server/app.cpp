@@ -16,33 +16,35 @@
 using namespace std;
 
 
-App::App(const shared_ptr<QApplication> &qapp, const shared_ptr<IPrintServer> &printServer, const shared_ptr<IConfigs> &cfg,
-         const shared_ptr<ILog> &log)
+App::App(const shared_ptr<QApplication> &qapp, const shared_ptr<IPrintServer> &printServer,
+         const shared_ptr<IConfigs> &cfg, const shared_ptr<ILog> &log):
+         _qapp(move(qapp)), _printServer(move(printServer)), _log(move(log)), _cfg(move(cfg))
+
 {
-    _qapp = qapp;
-    _printServer = printServer;
-    _log = log;
-    _cfg = cfg;
 }
 
 int App::start()
 {
     setlocale(LC_ALL, "Russian");
-    cout << "Starting..." << endl;
+    cout << "Starting PrintServer...";
 
-    _log->setLogFile("C:\\fingers\\fingers.log");
+    _log->setLogFile("fingers.log");
     try {
-        _cfg->load("C:\\fingers\\fingers.cfg");
+        _cfg->load("fingers.cfg");
     }
     catch (const string &err) {
-        cout << "Configs: " + err << endl;
+        cout << "[FAIL]" << endl;
+        _log->local("Configs: " + err, LOG_ERROR);
         return -1;
     }
 
+    const auto &sc = _cfg->getServerCfg();
+
     try {
-        _printServer->start(6000);
+        _printServer->start(sc.port, sc.clients);
     }
     catch(const string &err) {
+        cout << "[FAIL]" << endl;
         _log->local("PrintServer: " + err, LOG_ERROR);
         return -1;
     }

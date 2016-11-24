@@ -39,7 +39,7 @@ public:
 class PrintServer final: public IPrintServer, public TcpServer
 {
 private:
-    shared_ptr<ILog> _log;
+    const shared_ptr<ILog> _log;
     QPrinter _printer;
     mutex _mtx;
 
@@ -52,7 +52,12 @@ private:
     /*
      * Accepting new client error
      */
-    virtual void acceptError(void) const override final;
+    virtual void acceptError() const override final;
+
+    /*
+     * Server started signal
+     */
+    virtual void serverStarted() const override final;
 
 public:
     PrintServer(const shared_ptr<ILog> &log);
@@ -74,7 +79,7 @@ public:
      *
      * throw: error if fail binding ip address
      */
-    virtual void start(unsigned port) override final { TcpServer::start(port); }    
+    virtual void start(unsigned port, unsigned maxClients) override final { TcpServer::start(port, maxClients); }
 };
 
 

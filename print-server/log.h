@@ -38,7 +38,6 @@ class Log: public ILog
 {
 private:
     string _logPath;
-
     using ILog::setLogFile;
 
     /**
@@ -51,6 +50,8 @@ private:
     string makeLogMsg(const string &msg, const LogType type) const;
 
 public:
+    explicit Log();
+
     /*
      * Set path for saving log data in local file
      */

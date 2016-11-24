@@ -14,28 +14,30 @@
 
 #include <memory>
 #include <thread>
+#include <Winsock2.h>
+#include <Windows.h>
+#include <unistd.h>
+#include <string.h>
 #include "tcpclient.h"
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
+
 
 using namespace std;
-using boost::asio::ip::tcp;
 
 
 class ITcpServer
 {
 public:
     virtual void newSession(shared_ptr<ITcpClient> client) = 0;
-    virtual void acceptError(void) const = 0;
-    virtual void start(unsigned port) = 0;
+    virtual void acceptError() const = 0;
+    virtual void serverStarted() const = 0;
+    virtual void start(unsigned port, unsigned maxClients) = 0;
 };
 
 
 class TcpServer: public ITcpServer
 {
 private:
-    boost::asio::io_service _service;
-    shared_ptr<tcp::acceptor> _acpt;
+    SOCKET _sock;
 
 public:
     /*
@@ -46,7 +48,12 @@ public:
     /*
      * Accepting new client error signal
      */
-    virtual void acceptError(void) const { };
+    virtual void acceptError() const { };
+
+    /*
+     * Server started signal
+     */
+    virtual void serverStarted() const { };
 
     /**
      * Binding tcp server
@@ -54,7 +61,7 @@ public:
      *
      * throw: error if fail binding
      */
-    void start(unsigned port);
+    void start(unsigned port, unsigned maxClients);
 };
 
 

@@ -16,15 +16,17 @@
 
 using namespace std;
 
+
 typedef struct {
     unsigned port;
+    unsigned clients;
 } ServerCfg;
 
 class IConfigs
 {
 public:
-
-    virtual void load(const string &filename) = 0;
+    virtual const ServerCfg& getServerCfg(void) const=0;
+    virtual void load(const string &filename)=0;
 };
 
 
@@ -33,8 +35,12 @@ class Configs: public IConfigs
 private:
     ServerCfg sc;
 
+    string readString(ifstream &is) const;
+
+    int readInt(ifstream &is) const;
+
 public:
-    inline const ServerCfg& getServerCfg() { return sc; }
+    inline const ServerCfg& getServerCfg(void) const { return sc; }
 
     /**
      * Loading configs from json file

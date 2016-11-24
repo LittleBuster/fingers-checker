@@ -21,10 +21,10 @@
 class App
 {
 private:
-    shared_ptr<IPrintServer> _printServer;
-    shared_ptr<QApplication> _qapp;
-    shared_ptr<ILog> _log;
-    shared_ptr<IConfigs> _cfg;
+    const shared_ptr<IPrintServer> _printServer;
+    const shared_ptr<QApplication> _qapp;
+    const shared_ptr<ILog> _log;
+    const shared_ptr<IConfigs> _cfg;
 
 public:
     App(const shared_ptr<QApplication> &qapp, const shared_ptr<IPrintServer> &printServer, const shared_ptr<IConfigs> &cfg,

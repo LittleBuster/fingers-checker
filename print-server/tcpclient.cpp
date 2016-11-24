@@ -11,50 +11,68 @@
 
 #include "tcpclient.h"
 #include <stdlib.h>
-#include <boost/lexical_cast.hpp>
+#include <sys/types.h>
+#include <Windows.h>
+#include <Winsock2.h>
+#include <unistd.h>
+#include <string.h>
 
 
 TcpClient::TcpClient()
 {
-    _client = make_shared<tcp::socket>(_service);
 }
 
-TcpClient::TcpClient(const shared_ptr<tcp::socket> &parent_client)
+TcpClient::TcpClient(SOCKET sock)
 {
-    _client = parent_client;
+    _client = sock;
 }
 
 void TcpClient::connect(const string &ip, unsigned port)
 {
-    boost::system::error_code err;
+    int retVal;
+    struct sockaddr_in sock_addr;
 
-    tcp::resolver resolver(_service);
-    boost::asio::connect(*_client, resolver.resolve({ip, boost::lexical_cast<string>(port)}), err);
-    if (err)
+    memset(&sock_addr, 0x00, sizeof(sock_addr));
+    sock_addr.sin_family = AF_INET;
+    sock_addr.sin_addr.s_addr = inet_addr(ip.c_str());
+    sock_addr.sin_port = htons(port);
+
+    _client = socket(AF_INET, SOCK_STREAM, 0);
+    if (_client == INVALID_SOCKET)
+        throw string("Can not create client socket.");
+
+    retVal = ::connect(_client, reinterpret_cast<struct sockaddr *>(&sock_addr), sizeof(sock_addr));
+    if (retVal == SOCKET_ERROR)
         throw string("Can not connect to server.");
 }
 
 void TcpClient::send(const void *data, size_t len) const
 {
-    boost::system::error_code error;
+    int retVal = 0;
 
-    _client->write_some(boost::asio::buffer(data, len), error);
-    if (error)
-        throw string("Fail sending data.");
+    for (;;) {
+        retVal = ::send(_client, reinterpret_cast<const char *>(data), len, 0);
+        if (retVal == SOCKET_ERROR)
+            throw string("Fail sending data.");
+
+        if (retVal == static_cast<int>(len))
+            break;
+    }
 }
 
 void TcpClient::recv(void *data, size_t len) const
 {
-    boost::system::error_code error;
+    size_t bytes;
 
-    _client->read_some(boost::asio::buffer(data, len), error);
-    if (error == boost::asio::error::eof)
-        return;
-    else if (error)
+    bytes = ::recv(_client, reinterpret_cast<char *>(data), len, 0);
+    if ((bytes == 0) || (bytes == SOCKET_ERROR))
         throw string("Fail receiving data.");
 }
 
 void TcpClient::close() const
 {
-    _client->close();
+    if (_client != INVALID_SOCKET) {
+        ::shutdown(_client, 1);
+        ::close(_client);
+    }
 }

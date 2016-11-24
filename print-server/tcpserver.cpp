@@ -14,25 +14,54 @@
 #include <thread>
 
 
-void TcpServer::start(unsigned port)
+void TcpServer::start(unsigned port, unsigned maxClients)
 {
-    try {
-        _acpt = make_shared<tcp::acceptor>(_service, tcp::endpoint(tcp::v4(), port));
-    }
-    catch (...) {
-        throw string("Binding ip address and port fail.");
-    }
+    int retVal;
+    struct sockaddr_in sock_addr;
+
+    WSADATA wsaData;
+    WORD version_wanted = MAKEWORD(1, 1);
+
+    if (WSAStartup(version_wanted, &wsaData) != 0)
+        throw string("Fail WSA init.");
+
+    _sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (_sock == INVALID_SOCKET)
+        throw string("Fail Socket init.");
+
+    memset(&sock_addr, 0, sizeof(sock_addr));
+    sock_addr.sin_family = AF_INET;
+    sock_addr.sin_addr.s_addr = INADDR_ANY;
+    sock_addr.sin_port = htons(port);
+
+    retVal = bind(_sock, reinterpret_cast<struct sockaddr *>(&sock_addr), sizeof(sock_addr));
+    if (retVal == SOCKET_ERROR)
+        throw string("Fail binding server.");
+
+    retVal = listen(_sock, maxClients);
+    if (retVal == SOCKET_ERROR)
+        throw string("Fail starting listening.");
+
+    serverStarted();
+
     for (;;) {
-        auto sock = make_shared<tcp::socket>(_service);
-        try {
-            _acpt->accept(*sock);
-        }
-        catch (...) {
-            this->acceptError();
+        SOCKET sClient = accept(_sock, NULL, NULL);
+
+        if (sClient == SOCKET_ERROR) {
+            acceptError();
             continue;
         }
-        auto client = make_shared<TcpClient>(sock);
+
+        auto client = make_shared<TcpClient>(sClient);
         thread th(bind(&TcpServer::newSession, this, client));
         th.detach();
+    }
+    if (WSACleanup() == SOCKET_ERROR) {
+        if (WSAGetLastError() == WSAEINPROGRESS) {
+#ifndef _WIN32_WCE
+        WSACancelBlockingCall();
+#endif
+        WSACleanup();
+           }
     }
 }

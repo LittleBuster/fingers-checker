@@ -65,9 +65,13 @@ void PrintServer::acceptError() const
     _log->local("Fail accepting new client.", LOG_ERROR);
 }
 
-PrintServer::PrintServer(const shared_ptr<ILog> &log)
+void PrintServer::serverStarted() const
 {
-    _log = log;
+    cout << "[OK]" << endl;
+}
+
+PrintServer::PrintServer(const shared_ptr<ILog> &log): _log(move(log))
+{
 }
 
 void PrintServer::printTicket(const QString &shortName, const string &printName, const string &time, const string &hash, const string &hash2)
